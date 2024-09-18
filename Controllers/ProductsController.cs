@@ -1,10 +1,8 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Mappers;
-using YssWebstoreApi.Models.Api;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Product;
-using YssWebstoreApi.Models.Query;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Controllers
@@ -21,7 +19,10 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult> GetProduct([FromServices] IAccountRepository accountRepository, uint id)
+        public async Task<ActionResult> GetProduct(
+            [FromServices] IAccountRepository accountRepository,
+            [FromServices] IPackageRepository packageRepository,
+            uint id)
         {
             var product = await _productRepository.GetAsync(id);
             if (product is null)
@@ -29,10 +30,13 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            var owner = await accountRepository.GetAsync(product.AccountId!.Value);
-            var publicProduct = product.ToPublicProductDTO(owner?.ToPublicAccountDTO() ?? PublicAccount.Empty);
+            var account = await accountRepository.GetAsync(product.AccountId!.Value);
+            var packages = await packageRepository.GetPackagesByProductAsync(id);
 
-            return Ok(publicProduct);
+            return Ok(product.ToPublicProductExtendedDTO(
+                account!.ToPublicAccountDTO(),
+                packages.Select(x => x.ToPublicPackage())
+            ));
         }
 
         [HttpPost, Authorize]
@@ -103,12 +107,6 @@ namespace YssWebstoreApi.Controllers
             }
 
             return BadRequest();
-        }
-
-        [HttpGet]
-        public async Task<ActionResult> GetProducts([FromQuery] SearchParams searchParams, [FromQuery] Pagination pagination, [FromQuery] SortParams sortParams)
-        {
-            return Ok(await _productRepository.GetAllAsync());
         }
     }
 }

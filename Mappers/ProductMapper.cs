@@ -1,22 +1,39 @@
 ﻿using YssWebstoreApi.Models;
 using YssWebstoreApi.Models.DTOs.Accounts;
+using YssWebstoreApi.Models.DTOs.Package;
 using YssWebstoreApi.Models.DTOs.Product;
 
 namespace YssWebstoreApi.Mappers
 {
     public static class ProductMapper
     {
-        public static PublicProduct ToPublicProductDTO(this Product product, PublicAccount owner)
+        public static PublicProduct ToPublicProductDTO(this Product product)
         {
             return new PublicProduct
             {
                 Id = product.Id,
                 CreatedAt = product.CreatedAt,
                 UpdatedAt = product.UpdatedAt,
-                Account = owner,
+                AccountId = product.AccountId!.Value,
                 Name = product.Name!,
                 Description = product.Description!,
                 SourceUrl = product.SourceUrl!
+            };
+        }
+
+        public static PublicProduct ToPublicProductExtendedDTO(this Product product, PublicAccount account, IEnumerable<PublicPackage> packages)
+        {
+            return new PublicProductExtended
+            {
+                Id = product.Id,
+                CreatedAt = product.CreatedAt,
+                UpdatedAt = product.UpdatedAt,
+                AccountId = product.AccountId!.Value,
+                Account = account,
+                Name = product.Name!,
+                Description = product.Description!,
+                SourceUrl = product.SourceUrl!,
+                Packages = packages
             };
         }
 
