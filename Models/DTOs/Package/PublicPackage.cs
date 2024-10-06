@@ -6,6 +6,7 @@
         public required DateTimeOffset CreatedAt { get; set; }
         public required DateTimeOffset UpdatedAt { get; set; }
         public required uint ProductId { get; set; }
+        public required ulong FileSize { get; set; }
         public required string Name { get; set; }
         public required string Version { get; set; }
         public required string DownloadUrl { get; set; }

@@ -4,6 +4,7 @@ namespace YssWebstoreApi.Models.Query
 {
     public class SearchParams
     {
+        public uint? AccountId { get; set; }
         public string? SearchQuery { get; set; }
 
         [FromQuery(Name = "tag")]

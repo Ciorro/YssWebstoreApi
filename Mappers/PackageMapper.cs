@@ -13,6 +13,7 @@ namespace YssWebstoreApi.Mappers
                 CreatedAt = package.CreatedAt!.Value,
                 UpdatedAt = package.UpdatedAt!.Value,
                 ProductId = package.ProductId!.Value,
+                FileSize = package.FileSize!.Value,
                 Name = package.Name!,
                 Version = package.Version!,
                 DownloadUrl = package.DownloadUrl!,

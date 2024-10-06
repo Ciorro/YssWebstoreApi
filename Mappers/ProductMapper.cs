@@ -21,22 +21,6 @@ namespace YssWebstoreApi.Mappers
             };
         }
 
-        public static PublicProduct ToPublicProductExtendedDTO(this Product product, PublicAccount account, IEnumerable<PublicPackage> packages)
-        {
-            return new PublicProductExtended
-            {
-                Id = product.Id,
-                CreatedAt = product.CreatedAt,
-                UpdatedAt = product.UpdatedAt,
-                AccountId = product.AccountId!.Value,
-                Account = account,
-                Name = product.Name!,
-                Description = product.Description!,
-                SourceUrl = product.SourceUrl!,
-                Packages = packages
-            };
-        }
-
         public static Product ToProduct(this CreateProduct createProductDTO, uint accountId)
         {
             return new Product

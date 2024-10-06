@@ -1,6 +1,8 @@
 ﻿using Dapper;
 using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
+using YssWebstoreApi.Models.Api;
+using YssWebstoreApi.Models.Query;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Repositories
@@ -87,6 +89,56 @@ namespace YssWebstoreApi.Repositories
                 );
 
                 return await cn.ExecuteAsync(command) == 1;
+            }
+        }
+
+        public async Task<IEnumerable<Product>> Search(SearchParams searchParams, SortParams sortParams, Pagination pagination)
+        {
+            using (var cn = _dbConnectionFactory.Create())
+            {
+                var builder = new SqlBuilder();
+                var template = builder.AddTemplate(
+                    @"SELECT products.* FROM products 
+                    LEFT JOIN tagbindings ON products.Id = tagbindings.ItemId
+                    LEFT JOIN tags ON tagbindings.TagId = tags.Id
+                    /**where**/
+                    GROUP BY Id
+                    /**orderby**/
+                    LIMIT @limit OFFSET @offset");
+
+                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
+                {
+                    builder.Where("products.Name LIKE @searchQuery");
+                }
+                if (searchParams.Tags?.Length > 0)
+                {
+                    builder.Where("tags.Name IN @tags");
+                }
+                if (searchParams.AccountId.HasValue)
+                {
+                    builder.Where("products.AccountId = @accountId");
+                }
+
+                if (!string.IsNullOrEmpty(sortParams.OrderBy))
+                {
+                    var orderProperty = sortParams.OrderBy.ToLower() switch
+                    {
+                        "createdat" => "CreatedAt",
+                        "updatedat" => "UpdatedAt",
+                        _ => throw new Exception("Invalid parameters.")
+                    };
+
+                    builder.OrderBy($"{orderProperty} {(sortParams.SortBy == "ASC" ? "ASC" : "DESC")}");
+                }
+
+                return await cn.QueryAsync<Product>(template.RawSql, new
+                {
+                    searchQuery = $"%{searchParams.SearchQuery}%",
+                    searchParams.Tags,
+                    searchParams.AccountId,
+                    offset = pagination.PageSize * pagination.Page,
+                    limit = pagination.PageSize
+                });
             }
         }
     }

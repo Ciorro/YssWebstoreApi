@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Mappers;
+using YssWebstoreApi.Models.Api;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Product;
+using YssWebstoreApi.Models.Query;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Controllers
@@ -13,16 +15,13 @@ namespace YssWebstoreApi.Controllers
     {
         private readonly IProductRepository _productRepository;
 
-        public ProductsController(IProductRepository productRepository)
+        public ProductsController([FromQuery] IProductRepository productRepository)
         {
             _productRepository = productRepository;
         }
 
         [HttpGet("{id:int}")]
-        public async Task<ActionResult> GetProduct(
-            [FromServices] IAccountRepository accountRepository,
-            [FromServices] IPackageRepository packageRepository,
-            uint id)
+        public async Task<ActionResult> GetProduct(uint id)
         {
             var product = await _productRepository.GetAsync(id);
             if (product is null)
@@ -30,17 +29,18 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            var account = await accountRepository.GetAsync(product.AccountId!.Value);
-            var packages = await packageRepository.GetPackagesByProductAsync(id);
+            return Ok(product.ToPublicProductDTO());
+        }
 
-            return Ok(product.ToPublicProductExtendedDTO(
-                account!.ToPublicAccountDTO(),
-                packages.Select(x => x.ToPublicPackage())
-            ));
+        [HttpGet]
+        public async Task<ActionResult> GetAllProducts()
+        {
+            var products = await _productRepository.GetAllAsync();
+            return Ok(products.Select(x => x.ToPublicProductDTO()));
         }
 
         [HttpPost, Authorize]
-        public async Task<ActionResult> CreateProduct(CreateProduct createProductDTO)
+        public async Task<ActionResult> CreateProduct([FromQuery] CreateProduct createProductDTO)
         {
             if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
             {
@@ -58,7 +58,7 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpPut("{id:int}"), Authorize]
-        public async Task<ActionResult> UpdateProduct(uint id, UpdateProduct updateProductDTO)
+        public async Task<ActionResult> UpdateProduct(uint id, [FromQuery] UpdateProduct updateProductDTO)
         {
             if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
             {
@@ -107,6 +107,16 @@ namespace YssWebstoreApi.Controllers
             }
 
             return BadRequest();
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts(
+            [FromQuery] SearchParams? searchParams,
+            [FromQuery] SortParams? sortParams,
+            [FromQuery] Pagination? pagination)
+        {
+            var products = await _productRepository.Search(searchParams, sortParams, pagination);
+            return Ok(products.Select(x => x.ToPublicProductDTO()));
         }
     }
 }

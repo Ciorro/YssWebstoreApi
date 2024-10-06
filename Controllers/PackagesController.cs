@@ -1,11 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Mappers;
-using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Package;
-using YssWebstoreApi.Models.DTOs.Product;
-using YssWebstoreApi.Repositories;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Controllers
@@ -15,10 +11,12 @@ namespace YssWebstoreApi.Controllers
     public class PackagesController : ControllerBase
     {
         private readonly IPackageRepository _packageRepository;
+        private readonly IProductRepository _productRepository;
 
-        public PackagesController(IPackageRepository packageRepository)
+        public PackagesController(IPackageRepository packageRepository, IProductRepository productRepository)
         {
             _packageRepository = packageRepository;
+            _productRepository = productRepository;
         }
 
         [HttpGet("{id:int}")]
@@ -46,14 +44,14 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpPost, Authorize]
-        public async Task<ActionResult> CreatePackage([FromServices] IProductRepository productRepository, CreatePackage createPackageDTO)
+        public async Task<ActionResult> CreatePackage([FromServices] IHttpClientFactory httpFactory, CreatePackage createPackageDTO)
         {
             if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
             {
                 return Unauthorized();
             }
 
-            var product = await productRepository.GetAsync(createPackageDTO.ProductId);
+            var product = await _productRepository.GetAsync(createPackageDTO.ProductId);
             if (product is null)
             {
                 return NotFound();
@@ -63,7 +61,16 @@ namespace YssWebstoreApi.Controllers
                 return Unauthorized();
             }
 
-            if (await _packageRepository.CreateAsync(createPackageDTO.ToPackage()))
+            var createdPackage = createPackageDTO.ToPackage();
+
+            var httpClient = httpFactory.CreateClient();
+            using (var fileSizeRequest = new HttpRequestMessage(HttpMethod.Head, createdPackage.DownloadUrl))
+            {
+                var fileSizeResponse = (await httpClient.SendAsync(fileSizeRequest)).EnsureSuccessStatusCode();
+                createdPackage.FileSize = (ulong)(fileSizeResponse.Content.Headers.ContentLength ?? 0);
+            }
+
+            if (await _packageRepository.CreateAsync(createdPackage))
             {
                 return NoContent();
             }
@@ -72,7 +79,7 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpPut("{id:int}"), Authorize]
-        public async Task<ActionResult> UpdatePackage([FromServices] IProductRepository productRepository, uint id, UpdatePackage updatePackageDTO)
+        public async Task<ActionResult> UpdatePackage(uint id, UpdatePackage updatePackageDTO)
         {
             if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
             {
@@ -85,7 +92,7 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            var product = await productRepository.GetAsync(updatedPackage.ProductId!.Value);
+            var product = await _productRepository.GetAsync(updatedPackage.ProductId!.Value);
             if (product is null)
             {
                 return NotFound();
@@ -104,7 +111,7 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpDelete("{id:int}"), Authorize]
-        public async Task<ActionResult> DeletePackage([FromServices] IProductRepository productRepository, uint id)
+        public async Task<ActionResult> DeletePackage(uint id)
         {
             if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
             {
@@ -117,7 +124,7 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            var product = await productRepository.GetAsync(deletedPackage.ProductId!.Value);
+            var product = await _productRepository.GetAsync(deletedPackage.ProductId!.Value);
             if (product?.AccountId != accountId)
             {
                 return Unauthorized();

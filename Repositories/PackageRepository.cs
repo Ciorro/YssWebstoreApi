@@ -46,8 +46,8 @@ namespace YssWebstoreApi.Repositories
             using (var cn = _dbConnectionFactory.Create())
             {
                 var command = new CommandDefinition(
-                    commandText: @"insert into Packages (ProductId, Name, Version, DownloadUrl, TargetOS) 
-                                   values (@ProductId, @Name, @Version, @DownloadUrl, @TargetOS)",
+                    commandText: @"insert into Packages (ProductId, FileSize, Name, Version, DownloadUrl, TargetOS) 
+                                   values (@ProductId, @FileSize, @Name, @Version, @DownloadUrl, @TargetOS)",
                     parameters: entity
                 );
 

@@ -65,7 +65,8 @@ namespace YssWebstoreApi.Repositories
                                    RefreshToken = @RefreshToken, 
                                    VerificationCode = @VerificationCode, 
                                    RefreshTokenExpiresAt = @RefreshTokenExpiresAt,
-                                   VerificationCodeExpiresAt = @VerificationCodeExpiresAt",
+                                   VerificationCodeExpiresAt = @VerificationCodeExpiresAt
+                                   where Id=@Id",
                     parameters: entity
                 );
 

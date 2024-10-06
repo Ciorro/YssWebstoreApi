@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Services.Jwt
 
         public string GetJwt(params Claim[] claims)
         {
-            var now = _timeProvider.GetLocalNow().DateTime;
+            var now = _timeProvider.GetUtcNow().UtcDateTime;
 
             var token = new JwtSecurityToken(
                 claims: claims,

@@ -47,14 +47,17 @@ namespace YssWebstoreApi.Controllers
                 return Unauthorized();
             }
 
-            var jwtToken = _tokenService.GetJwt([
+            var accessToken = _tokenService.GetJwt([
                 new Claim("account_id", credentials.AccountId.ToString()!),
                 new Claim("is_verified", credentials.IsVerified.ToString())
             ]);
+            var refreshToken = (await SetRefreshToken(credentials, signInCredentials.RememberMe))!.Token;
 
-            await SetRefreshToken(credentials, signInCredentials.RememberMe);
-
-            return Ok(jwtToken);
+            return Ok(new
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            });
         }
 
         [HttpPost("signup")]
@@ -77,7 +80,19 @@ namespace YssWebstoreApi.Controllers
 
                 if (await _credentialsRepository.CreateAsync(credentials))
                 {
-                    return Ok();
+                    credentials.Id = (await _credentialsRepository.GetByAccountAsync(credentials.AccountId!.Value))?.Id;
+
+                    var accessToken = _tokenService.GetJwt([
+                        new Claim("account_id", credentials.AccountId.ToString()!),
+                        new Claim("is_verified", credentials.IsVerified.ToString())
+                    ]);
+                    var refreshToken = (await SetRefreshToken(credentials, false))!.Token;
+
+                    return Ok(new
+                    {
+                        AccessToken = accessToken,
+                        RefreshToken = refreshToken
+                    });
                 }
             }
 
@@ -85,7 +100,7 @@ namespace YssWebstoreApi.Controllers
         }
 
         [HttpPost("{id:int}/refresh")]
-        public async Task<IActionResult> Refresh(uint id)
+        public async Task<IActionResult> Refresh([FromRoute] uint id, [FromBody] string? refreshToken)
         {
             var credentials = await _credentialsRepository.GetByAccountAsync(id);
             if (credentials is null)
@@ -93,7 +108,7 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            if (!Request.Cookies.TryGetValue("refresh-token", out var refreshToken))
+            if (string.IsNullOrEmpty(refreshToken) && !Request.Cookies.TryGetValue("refresh-token", out refreshToken))
             {
                 return Unauthorized();
             }
@@ -107,15 +122,19 @@ namespace YssWebstoreApi.Controllers
 
             if (tokenExpiresIn < TimeSpan.FromDays(1))
             {
-                await SetRefreshToken(credentials, false);
+                refreshToken = (await SetRefreshToken(credentials, false))!.Token;
             }
 
-            var jwtToken = _tokenService.GetJwt([
+            var accessToken = _tokenService.GetJwt([
                 new Claim("account_id", credentials.AccountId.ToString()!),
                 new Claim("is_verified", credentials.IsVerified.ToString())
             ]);
 
-            return Ok(jwtToken);
+            return Ok(new
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            });
         }
 
         private async Task<RefreshToken?> SetRefreshToken(Credentials credentials, bool disposable)
@@ -132,7 +151,9 @@ namespace YssWebstoreApi.Controllers
                 {
                     HttpOnly = true,
                     IsEssential = true,
-                    Expires = disposable ? null : expires
+                    Expires = disposable ? null : expires,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
                 });
 
                 return new RefreshToken(token, expires);

@@ -6,6 +6,7 @@
         public DateTimeOffset? CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public uint? ProductId { get; set; }
+        public ulong? FileSize { get; set; }
         public string? Name { get; set; }
         public string? Version { get; set; }
         public string? DownloadUrl { get; set; }

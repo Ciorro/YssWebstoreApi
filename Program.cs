@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 using YssWebstoreApi.Database;
 using YssWebstoreApi.Middlewares;
@@ -26,8 +28,6 @@ namespace YssWebstoreApi
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
                     Scheme = JwtBearerDefaults.AuthenticationScheme,
-                    Description = "Put **_ONLY_** your JWT Bearer token on textbox below!",
-
                     Reference = new OpenApiReference
                     {
                         Id = JwtBearerDefaults.AuthenticationScheme,
@@ -42,6 +42,8 @@ namespace YssWebstoreApi
                 });
             });
 
+            builder.Services.AddCors();
+            builder.Services.AddHttpClient();
             builder.Services.AddControllers();
             builder.Services.AddRepositories();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -62,7 +64,23 @@ namespace YssWebstoreApi
 
             var app = builder.Build();
 
+            app.UseFileServer(new FileServerOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Static")),
+                RequestPath = "/static"
+            });
+
             app.UseHttpsRedirection();
+            app.UseCors(
+                options => options
+                .WithOrigins("http://localhost:3000")
+                .WithOrigins("https://localhost:3000")
+                .AllowCredentials()
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .Build()
+            );
             app.UseAuthentication();
             app.UseAuthorization();
             app.UseVerification();
