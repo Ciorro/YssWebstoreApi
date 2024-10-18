@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using MediatR;
 using System.Data;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Product;
 

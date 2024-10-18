@@ -1,0 +1,77 @@
+﻿using Dapper;
+using System.Data;
+using YssWebstoreApi.Models;
+using YssWebstoreApi.Repositories.Abstractions;
+
+namespace YssWebstoreApi.Repositories
+{
+    public class PackageRepository : IRepository<Package>, IDisposable
+    {
+        private readonly IDbConnection _cn;
+
+        public PackageRepository(IDbConnection dbConnection)
+        {
+            _cn = dbConnection;
+        }
+
+        public async Task<Package?> GetAsync(ulong id)
+        {
+            var parameters = new
+            {
+                Id = id
+            };
+
+            string sql = @"SELECT packages.* FROM packages WHERE Id=@Id";
+            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+        }
+
+        public async Task<ulong?> CreateAsync(Package entity)
+        {
+            var parameters = new
+            {
+                ProductId = entity.ProductId,
+                Name = entity.Name,
+                Version = entity.Version,
+                DownloadUrl = entity.DownloadUrl,
+                FileSize = entity.FileSize,
+                TargetOs = entity.TargetOs
+            };
+
+            string sql = @"INSERT INTO packages (ProductId,FileSize,Name,Version,DownloadUrl,TargetOS) 
+                           VALUES (@ProductId,@FileSize,@Name,@Version,@DownloadUrl,@TargetOS) RETURNING Id";
+
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
+        }
+
+        public async Task<ulong?> UpdateAsync(ulong id, Package entity)
+        {
+            var parameters = new
+            {
+                Id = id,
+                Name = entity.Name,
+            };
+
+            string sql = @"UPDATE packages
+                           SET Name = @Name
+                           WHERE Id = @Id";
+
+            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+        }
+
+        public async Task<ulong?> DeleteAsync(ulong id)
+        {
+            var parameters = new
+            {
+                Id = id
+            };
+
+            string sql = @"DELETE FROM packages WHERE Id = @Id RETURNING Id";
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
+        }
+
+        public void Dispose()
+        {
+            _cn.Dispose();
+        }
+    }
+}

@@ -2,7 +2,6 @@
 {
     public class CreatePackage
     {
-        public required uint ProductId { get; set; }
         public required string Name { get; set; }
         public required string Version { get; set; }
         public required string DownloadUrl { get; set; }

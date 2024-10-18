@@ -1,141 +1,98 @@
-﻿//using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Mvc;
-//using YssWebstoreApi.Mappers;
-//using YssWebstoreApi.Models.DTOs.Package;
-//using YssWebstoreApi.Repositories.Abstractions;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Extensions;
+using YssWebstoreApi.Features.Commands.Packages;
+using YssWebstoreApi.Features.Queries.Packages;
+using YssWebstoreApi.Features.Queries.Products;
+using YssWebstoreApi.Models.DTOs.Package;
 
-//namespace YssWebstoreApi.Controllers
-//{
-//    [Route("api/[controller]")]
-//    [ApiController]
-//    public class PackagesController : ControllerBase
-//    {
-//        private readonly IPackageRepository _packageRepository;
-//        private readonly IProductRepository _productRepository;
+namespace YssWebstoreApi.Controllers
+{
+    [Route("api/products/{productId:int}/[controller]")]
+    [ApiController]
+    public class PackagesController : ControllerBase
+    {
+        private readonly IMediator _mediator;
 
-//        public PackagesController(IPackageRepository packageRepository, IProductRepository productRepository)
-//        {
-//            _packageRepository = packageRepository;
-//            _productRepository = productRepository;
-//        }
+        public PackagesController(IMediator mediator)
+        {
+            _mediator = mediator;
+        }
 
-//        [HttpGet("{id:int}")]
-//        public async Task<ActionResult> GetPackage(uint id)
-//        {
-//            var package = await _packageRepository.GetAsync(id);
-//            if (package is null)
-//            {
-//                return NotFound();
-//            }
+        [HttpGet]
+        public async Task<IActionResult> GetPackages(ulong productId)
+        {
+            return Ok(await _mediator.Send(new GetPackagesByProductIdQuery(productId)));
+        }
 
-//            return Ok(package.ToPublicPackage());
-//        }
+        [HttpGet("{packageId:int}")]
+        public async Task<ActionResult> GetPackage(ulong productId, ulong packageId)
+        {
+            var package = (await _mediator.Send(new GetPackagesByProductIdQuery(productId)))
+                .SingleOrDefault(x => x.Id == packageId);
 
-//        [HttpGet("product/{id:int}")]
-//        public async Task<ActionResult> GetPackagesByProduct(uint id)
-//        {
-//            var packages = await _packageRepository.GetPackagesByProductAsync(id);
-//            if (packages is null)
-//            {
-//                return NotFound();
-//            }
+            return package is PublicPackage ?
+                Ok(package) :
+                NotFound();
+        }
 
-//            return Ok(packages.Select(x => x.ToPublicPackage()));
-//        }
+        [HttpPost, Authorize]
+        public async Task<ActionResult> CreatePackage(ulong productId, CreatePackage createPackageDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-//        [HttpPost, Authorize]
-//        public async Task<ActionResult> CreatePackage([FromServices] IHttpClientFactory httpFactory, CreatePackage createPackageDTO)
-//        {
-//            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
-//            {
-//                return Unauthorized();
-//            }
+            var parentProduct = await _mediator.Send(new GetProductByIdQuery(productId));
+            if (parentProduct?.Account.Id != User.GetUserId())
+            {
+                return Unauthorized();
+            }
 
-//            var product = await _productRepository.GetAsync(createPackageDTO.ProductId);
-//            if (product is null)
-//            {
-//                return NotFound();
-//            }
-//            if (product.AccountId != accountId)
-//            {
-//                return Unauthorized();
-//            }
+            var resultId = await _mediator.Send(new CreatePackageCommand(productId, createPackageDTO));
 
-//            var createdPackage = createPackageDTO.ToPackage();
+            return resultId.HasValue ?
+                Ok(resultId.Value) :
+                Problem();
+        }
 
-//            var httpClient = httpFactory.CreateClient();
-//            using (var fileSizeRequest = new HttpRequestMessage(HttpMethod.Head, createdPackage.DownloadUrl))
-//            {
-//                var fileSizeResponse = (await httpClient.SendAsync(fileSizeRequest)).EnsureSuccessStatusCode();
-//                createdPackage.FileSize = (ulong)(fileSizeResponse.Content.Headers.ContentLength ?? 0);
-//            }
+        [HttpPut("{packageId:int}"), Authorize]
+        public async Task<ActionResult> UpdatePackage(ulong productId, ulong packageId, UpdatePackage updatePackageDTO)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            var parentProduct = await _mediator.Send(new GetProductByIdQuery(productId));
+            if (parentProduct?.Account.Id != User.GetUserId())
+            {
+                return Unauthorized();
+            }
 
-//            if (await _packageRepository.CreateAsync(createdPackage))
-//            {
-//                return NoContent();
-//            }
+            var resultId = await _mediator.Send(new UpdatePackageCommand(packageId, updatePackageDTO));
 
-//            return BadRequest();
-//        }
+            return resultId.HasValue ?
+                Ok(resultId) :
+                NotFound();
+        }
 
-//        [HttpPut("{id:int}"), Authorize]
-//        public async Task<ActionResult> UpdatePackage(uint id, UpdatePackage updatePackageDTO)
-//        {
-//            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
-//            {
-//                return Unauthorized();
-//            }
+        [HttpDelete("{packageId:int}"), Authorize]
+        public async Task<ActionResult> DeletePackage(ulong productId, ulong packageId)
+        {
+            var parentProduct = await _mediator.Send(new GetProductByIdQuery(productId));
+            if (parentProduct?.Account.Id != User.GetUserId())
+            {
+                return Unauthorized();
+            }
 
-//            var updatedPackage = await _packageRepository.GetAsync(id);
-//            if (updatedPackage is null)
-//            {
-//                return NotFound();
-//            }
+            var resultId = await _mediator.Send(new DeletePackageCommand(packageId));
 
-//            var product = await _productRepository.GetAsync(updatedPackage.ProductId!.Value);
-//            if (product is null)
-//            {
-//                return NotFound();
-//            }
-//            if (product.AccountId != accountId)
-//            {
-//                return Unauthorized();
-//            }
-
-//            if (await _packageRepository.UpdateAsync(id, updatePackageDTO.ToPackage()))
-//            {
-//                return NoContent();
-//            }
-
-//            return BadRequest();
-//        }
-
-//        [HttpDelete("{id:int}"), Authorize]
-//        public async Task<ActionResult> DeletePackage(uint id)
-//        {
-//            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint accountId))
-//            {
-//                return Unauthorized();
-//            }
-
-//            var deletedPackage = await _packageRepository.GetAsync(id);
-//            if (deletedPackage is null)
-//            {
-//                return NotFound();
-//            }
-
-//            var product = await _productRepository.GetAsync(deletedPackage.ProductId!.Value);
-//            if (product?.AccountId != accountId)
-//            {
-//                return Unauthorized();
-//            }
-
-//            if (await _packageRepository.DeleteAsync(id))
-//            {
-//                return NoContent();
-//            }
-
-//            return BadRequest();
-//        }
-//    }
-//}
+            return resultId.HasValue ?
+                Ok(resultId) :
+                NotFound();
+        }
+    }
+}
