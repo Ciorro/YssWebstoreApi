@@ -2,8 +2,10 @@
 {
     public class Credentials
     {
-        public uint? Id { get; set; }
-        public uint? AccountId { get; set; }
+        public ulong? Id { get; set; }
+        public ulong? AccountId { get; set; }
+        public DateTimeOffset? CreatedAt { get; set; }
+        public DateTimeOffset? UpdatedAt { get; set; }
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
         public string? PasswordSalt { get; set; }

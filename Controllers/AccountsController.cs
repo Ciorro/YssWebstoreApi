@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using YssWebstoreApi.Mappers;
-using YssWebstoreApi.Middlewares.Attributes;
+using YssWebstoreApi.Extensions;
+using YssWebstoreApi.Features.Commands.Accounts;
+using YssWebstoreApi.Features.Queries.Accounts;
 using YssWebstoreApi.Models.DTOs.Accounts;
-using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Controllers
 {
@@ -11,74 +12,63 @@ namespace YssWebstoreApi.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        private readonly IAccountRepository _accountRepository;
+        private readonly IMediator _mediator;
 
-        public AccountsController(IAccountRepository accountRepository)
+        public AccountsController(IMediator mediator)
         {
-            _accountRepository = accountRepository;
+            _mediator = mediator;
         }
 
-        [HttpGet("{id:int}/public")]
-        public async Task<IActionResult> GetPublicAccount([FromRoute] uint id)
+        [HttpGet("{accountId:int}")]
+        public async Task<IActionResult> GetPublicAccount([FromRoute] ulong accountId)
         {
-            var account = await _accountRepository.GetAsync(id);
+            var account = await _mediator.Send(new GetPublicAccountQuery(accountId));
 
-            if (account is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(account.ToPublicAccountDTO());
+            return account is PublicAccount ?
+                Ok(account) :
+                NotFound();
         }
 
-        [HttpGet("private"), Authorize]
+        [HttpGet, Authorize]
         public async Task<IActionResult> GetPrivateAccount()
         {
-            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint id))
+            try
+            {
+                var account = await _mediator.Send(new GetPrivateAccountQuery(User.GetUserId()));
+
+                return account is PrivateAccount ?
+                    Ok(account) :
+                    NotFound();
+            }
+            catch (UnauthorizedAccessException)
             {
                 return Unauthorized();
             }
-
-            var account = await _accountRepository.GetAsync(id);
-
-            if (account is null)
-            {
-                return NotFound();
-            }
-
-            return Ok(account.ToPrivateAccountDTO());
         }
 
         [HttpPut, Authorize]
         public async Task<IActionResult> UpdateAccount([FromBody] UpdateAccount updateAccountDTO)
         {
-            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint id))
+            if (!ModelState.IsValid)
             {
-                return Unauthorized();
+                return BadRequest(ModelState);
             }
 
-            if (await _accountRepository.UpdateAsync(id, updateAccountDTO.ToAccount()))
-            {
-                return NoContent();
-            }
+            var resultId = await _mediator.Send(new UpdateAccountCommand(User.GetUserId(), updateAccountDTO));
 
-            return NotFound();
+            return resultId.HasValue ?
+                Ok(resultId) :
+                Problem();
         }
 
         [HttpDelete, Authorize]
         public async Task<IActionResult> DeleteAccount()
         {
-            if (!uint.TryParse(User.FindFirst("account_id")?.Value, out uint id))
-            {
-                return Unauthorized();
-            }
+            var resultId = await _mediator.Send(new DeleteAccountCommand(User.GetUserId()));
 
-            if (await _accountRepository.DeleteAsync(id))
-            {
-                return NoContent();
-            }
-
-            return NotFound();
+            return resultId.HasValue ?
+                Ok(resultId) :
+                Problem();
         }
     }
 }

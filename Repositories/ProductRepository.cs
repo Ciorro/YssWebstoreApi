@@ -1,145 +1,81 @@
 ﻿using Dapper;
+using System.Data;
 using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
-using YssWebstoreApi.Models.Api;
-using YssWebstoreApi.Models.Query;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Repositories
 {
-    public class ProductRepository : IProductRepository
+    public class ProductRepository : IRepository<Product>, IDisposable
     {
-        private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly TimeProvider _timeProvider;
+        private readonly IDbConnection _cn;
 
-        public ProductRepository(IDbConnectionFactory dbConnectionFactory, TimeProvider timeProvider)
+        public ProductRepository(IDbConnection dbConnection)
         {
-            _dbConnectionFactory = dbConnectionFactory;
-            _timeProvider = timeProvider;
+            _cn = dbConnection;
         }
 
-        public async Task<Product?> GetAsync(uint id)
+        public async Task<Product?> GetAsync(ulong id)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "select * from Products where Id=@id",
-                    parameters: new { id }
-                );
+                Id = id
+            };
 
-                return await cn.QuerySingleOrDefaultAsync<Product>(command);
-            }
+            string sql = @"SELECT products.* FROM products WHERE Id=@Id";
+            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
         }
 
-        public async Task<IEnumerable<Product>> GetAllAsync()
+        public async Task<ulong?> CreateAsync(Product entity)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "select * from Products"
-                );
+                AccountId = entity.AccountId,
+                Name = entity.Name,
+                Description = entity.Description,
+                SourceUrl = entity.SourceUrl,
+                Tags = string.Join(' ', entity.Tags)
+            };
 
-                return await cn.QueryAsync<Product>(command);
-            }
+            string sql = @"INSERT INTO products (AccountId,Name,Description,SourceUrl,Tags) 
+                           VALUES (@AccountId,@Name,@Description,@SourceUrl,@Tags) RETURNING Id";
+
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<bool> CreateAsync(Product entity)
+        public async Task<ulong?> UpdateAsync(ulong id, Product entity)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: @"insert into Products (AccountId, Name, Description, SourceUrl) 
-                                   values (@AccountId, @Name, @Description, @SourceUrl)",
-                    parameters: entity
-                );
+                Id = id,
+                Name = entity.Name,
+                Description = entity.Description,
+                SourceUrl = entity.SourceUrl
+            };
 
-                return await cn.ExecuteAsync(command) == 1;
-            }
+            string sql = @"UPDATE products
+                           SET Name = @Name,
+                               Description = @Description,
+                               SourceUrl = @SourceUrl
+                           WHERE Id = @Id";
+
+            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
         }
 
-        public async Task<bool> UpdateAsync(uint id, Product entity)
+        public async Task<ulong?> DeleteAsync(ulong id)
         {
-            entity.UpdatedAt = _timeProvider.GetUtcNow();
-
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "update Products set UpdatedAt=@UpdatedAt, Name=@Name, Description=@Description, SourceUrl=@SourceUrl where Id=@id",
-                    parameters: new
-                    {
-                        entity.UpdatedAt,
-                        entity.Name,
-                        entity.Description,
-                        entity.SourceUrl,
-                        id
-                    }
-                );
+                Id = id
+            };
 
-                return await cn.ExecuteAsync(command) == 1;
-            }
+            string sql = @"DELETE FROM products WHERE Id = @Id RETURNING Id";
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<bool> DeleteAsync(uint id)
+        public void Dispose()
         {
-            using (var cn = _dbConnectionFactory.Create())
-            {
-                var command = new CommandDefinition(
-                    commandText: "delete from Products where Id=@id",
-                    parameters: new { id }
-                );
-
-                return await cn.ExecuteAsync(command) == 1;
-            }
-        }
-
-        public async Task<IEnumerable<Product>> Search(SearchParams searchParams, SortParams sortParams, Pagination pagination)
-        {
-            using (var cn = _dbConnectionFactory.Create())
-            {
-                var builder = new SqlBuilder();
-                var template = builder.AddTemplate(
-                    @"SELECT products.* FROM products 
-                    LEFT JOIN tagbindings ON products.Id = tagbindings.ItemId
-                    LEFT JOIN tags ON tagbindings.TagId = tags.Id
-                    /**where**/
-                    GROUP BY Id
-                    /**orderby**/
-                    LIMIT @limit OFFSET @offset");
-
-                if (!string.IsNullOrEmpty(searchParams.SearchQuery))
-                {
-                    builder.Where("products.Name LIKE @searchQuery");
-                }
-                if (searchParams.Tags?.Length > 0)
-                {
-                    builder.Where("tags.Name IN @tags");
-                }
-                if (searchParams.AccountId.HasValue)
-                {
-                    builder.Where("products.AccountId = @accountId");
-                }
-
-                if (!string.IsNullOrEmpty(sortParams.OrderBy))
-                {
-                    var orderProperty = sortParams.OrderBy.ToLower() switch
-                    {
-                        "createdat" => "CreatedAt",
-                        "updatedat" => "UpdatedAt",
-                        _ => throw new Exception("Invalid parameters.")
-                    };
-
-                    builder.OrderBy($"{orderProperty} {(sortParams.SortBy == "ASC" ? "ASC" : "DESC")}");
-                }
-
-                return await cn.QueryAsync<Product>(template.RawSql, new
-                {
-                    searchQuery = $"%{searchParams.SearchQuery}%",
-                    searchParams.Tags,
-                    searchParams.AccountId,
-                    offset = pagination.PageSize * pagination.Page,
-                    limit = pagination.PageSize
-                });
-            }
+            _cn.Dispose();
         }
     }
 }

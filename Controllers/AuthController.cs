@@ -1,13 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using YssWebstoreApi.Mappers;
-using YssWebstoreApi.Middlewares.Attributes;
-using YssWebstoreApi.Models;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Features.Commands.Auth;
+using YssWebstoreApi.Features.Queries.Auth;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Auth;
-using YssWebstoreApi.Repositories.Abstractions;
-using YssWebstoreApi.Security;
-using YssWebstoreApi.Services.Jwt;
 
 namespace YssWebstoreApi.Controllers
 {
@@ -15,120 +11,73 @@ namespace YssWebstoreApi.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly ICredentialRepository _credentialsRepository;
-        private readonly ITokenService _tokenService;
-        private readonly TimeProvider _timeProvider;
+        private readonly IMediator _mediator;
 
-        public AuthController(ICredentialRepository credentialsRepository, ITokenService tokenService, TimeProvider timeProvider)
+        public AuthController(IMediator mediator)
         {
-            _credentialsRepository = credentialsRepository;
-            _tokenService = tokenService;
-            _timeProvider = timeProvider;
+            _mediator = mediator;
         }
 
-        [HttpPost("signin"), AllowUnverified]
+        [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInCredentials signInCredentials)
         {
-            var credentials = await _credentialsRepository.GetByEmailAsync(signInCredentials.Email);
-            if (credentials is null)
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var signInResult = await _mediator.Send(new SignInQuery
+            {
+                Email = signInCredentials.Email,
+                Password = signInCredentials.Password,
+            });
+
+            if (!signInResult.HasValue)
             {
                 return Unauthorized();
             }
 
-            var correctPassword = new SaltedPassword()
-            {
-                PasswordHash = credentials.PasswordHash!,
-                PasswordSalt = credentials.PasswordSalt!
-            };
-            var incomingPassword = new SaltedPassword(signInCredentials.Password, credentials.PasswordSalt!);
-
-            if (correctPassword != incomingPassword)
-            {
-                return Unauthorized();
-            }
-
-            var accessToken = _tokenService.GetJwt([
-                new Claim("account_id", credentials.AccountId.ToString()!),
-                new Claim("is_verified", credentials.IsVerified.ToString())
-            ]);
-            var refreshToken = (await SetRefreshToken(credentials, signInCredentials.RememberMe))!.Token;
+            var refreshToken = await _mediator.Send(
+                new GetValidRefreshTokenQuery(signInResult.Value.accountId));
+            refreshToken = await _mediator.Send(
+                new GetProlongedRefreshTokenCommand(signInResult.Value.accountId)
+                {
+                    CurrentRefreshToken = refreshToken
+                });
 
             return Ok(new
             {
-                AccessToken = accessToken,
+                AccessToken = signInResult.Value.token,
                 RefreshToken = refreshToken
             });
         }
 
         [HttpPost("signup")]
-        public async Task<IActionResult> SignUp(
-            [FromServices] IAccountRepository accountRepository, [FromBody] CreateAccount createAccount)
+        public async Task<IActionResult> SignUp([FromBody] CreateAccount createAccount)
         {
-            var password = new SaltedPassword(createAccount.Credentials.Password);
-
-            if (await accountRepository.CreateAsync(createAccount.ToAccount()))
+            if (!ModelState.IsValid)
             {
-                var createdAccount = await accountRepository.GetByUniqueNameAsync(createAccount.UniqueName);
-
-                var credentials = new Credentials
-                {
-                    AccountId = createdAccount!.Id,
-                    Email = createAccount.Credentials.Email,
-                    PasswordHash = password.PasswordHash,
-                    PasswordSalt = password.PasswordSalt
-                };
-
-                if (await _credentialsRepository.CreateAsync(credentials))
-                {
-                    credentials.Id = (await _credentialsRepository.GetByAccountAsync(credentials.AccountId!.Value))?.Id;
-
-                    var accessToken = _tokenService.GetJwt([
-                        new Claim("account_id", credentials.AccountId.ToString()!),
-                        new Claim("is_verified", credentials.IsVerified.ToString())
-                    ]);
-                    var refreshToken = (await SetRefreshToken(credentials, false))!.Token;
-
-                    return Ok(new
-                    {
-                        AccessToken = accessToken,
-                        RefreshToken = refreshToken
-                    });
-                }
+                return BadRequest(ModelState);
             }
 
-            return BadRequest();
-        }
-
-        [HttpPost("{id:int}/refresh")]
-        public async Task<IActionResult> Refresh([FromRoute] uint id, [FromBody] string? refreshToken)
-        {
-            var credentials = await _credentialsRepository.GetByAccountAsync(id);
-            if (credentials is null)
+            var accountId = await _mediator.Send(new SignUpCommand(createAccount));
+            if (!accountId.HasValue)
             {
-                return NotFound();
+                return Conflict();
             }
 
-            if (string.IsNullOrEmpty(refreshToken) && !Request.Cookies.TryGetValue("refresh-token", out refreshToken))
+            var accessToken = (await _mediator.Send(new SignInQuery
+            {
+                Email = createAccount.Credentials.Email,
+                Password = createAccount.Credentials.Password
+            }))?.token;
+
+            var refreshToken = await _mediator.Send(new GetProlongedRefreshTokenCommand(accountId.Value));
+
+            if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
             {
                 return Unauthorized();
             }
-
-            var tokenExpiresIn = credentials.RefreshTokenExpiresAt?.Subtract(_timeProvider.GetUtcNow());
-
-            if (refreshToken != credentials.RefreshToken || tokenExpiresIn <= TimeSpan.Zero)
-            {
-                return Unauthorized();
-            }
-
-            if (tokenExpiresIn < TimeSpan.FromDays(1))
-            {
-                refreshToken = (await SetRefreshToken(credentials, false))!.Token;
-            }
-
-            var accessToken = _tokenService.GetJwt([
-                new Claim("account_id", credentials.AccountId.ToString()!),
-                new Claim("is_verified", credentials.IsVerified.ToString())
-            ]);
 
             return Ok(new
             {
@@ -137,29 +86,26 @@ namespace YssWebstoreApi.Controllers
             });
         }
 
-        private async Task<RefreshToken?> SetRefreshToken(Credentials credentials, bool disposable)
+        [HttpPost("{accountId:int}/refresh")]
+        public async Task<IActionResult> Refresh([FromRoute] ulong accountId, [FromBody] string refreshToken)
         {
-            var token = SecurityUtils.GetRandomString(255);
-            var expires = _timeProvider.GetUtcNow().AddDays(7);
-
-            credentials.RefreshToken = token;
-            credentials.RefreshTokenExpiresAt = expires;
-
-            if (await _credentialsRepository.UpdateAsync(credentials.Id!.Value, credentials))
+            if (string.IsNullOrWhiteSpace(refreshToken))
             {
-                Response.Cookies.Append("refresh-token", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    IsEssential = true,
-                    Expires = disposable ? null : expires,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
-
-                return new RefreshToken(token, expires);
+                return Unauthorized();
             }
 
-            return null;
+            var tokenCredentials = await _mediator.Send(new TokenSignInQuery(accountId, refreshToken));
+            if (tokenCredentials is null)
+            {
+                return Unauthorized();
+            }
+
+            await _mediator.Send(new GetProlongedRefreshTokenCommand(accountId)
+            {
+                CurrentRefreshToken = tokenCredentials.RefreshToken
+            });
+
+            return Ok(tokenCredentials!);
         }
     }
 }

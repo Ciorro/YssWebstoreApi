@@ -2,11 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MySql.Data.MySqlClient;
+using System.Configuration;
+using System.Data;
 using System.Reflection;
 using System.Text;
 using YssWebstoreApi.Database;
-using YssWebstoreApi.Middlewares;
-using YssWebstoreApi.Repositories;
+using YssWebstoreApi.Formatters;
+using YssWebstoreApi.Installers;
 using YssWebstoreApi.Services.Jwt;
 
 namespace YssWebstoreApi
@@ -16,8 +19,6 @@ namespace YssWebstoreApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            builder.Services.AddSingleton<IDbConnectionFactory, DbConnectionFactory>();
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -42,9 +43,22 @@ namespace YssWebstoreApi
                 });
             });
 
+            builder.Services.AddScoped<IDbConnection>((services) =>
+            {
+                var configuration = services.GetRequiredService<IConfiguration>();
+                var connectionStr = configuration.GetConnectionString("DefaultConnection")!;
+                var connection = new MySqlConnection(connectionStr);
+
+                connection.Open();
+                return connection;
+            });
+
             builder.Services.AddCors();
             builder.Services.AddHttpClient();
-            builder.Services.AddControllers();
+            builder.Services.AddControllers((config) =>
+            {
+                config.InputFormatters.Add(new PlainTextFormatter());
+            });
             builder.Services.AddRepositories();
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -60,6 +74,11 @@ namespace YssWebstoreApi
                     };
                 });
             builder.Services.AddAuthorization();
+
+            builder.Services.AddMediatR(config =>
+            {
+                config.RegisterServicesFromAssembly(typeof(Program).Assembly);
+            });
             builder.Services.AddSingleton<ITokenService, TokenService>();
 
             var app = builder.Build();
@@ -86,6 +105,7 @@ namespace YssWebstoreApi
             app.UseVerification();
 
             app.MapControllers();
+            app.AddTagHandlers();
 
             if (app.Environment.IsDevelopment())
             {

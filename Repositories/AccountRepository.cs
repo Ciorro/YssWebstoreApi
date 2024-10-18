@@ -1,105 +1,78 @@
 ﻿using Dapper;
+using System.Data;
 using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Repositories
 {
-    public class AccountRepository : IAccountRepository
+    public class AccountRepository : IRepository<Account>, IDisposable
     {
-        private readonly IDbConnectionFactory _dbConnectionFactory;
-        private readonly TimeProvider _timeProvider;
+        private readonly IDbConnection _cn;
 
-        public AccountRepository(IDbConnectionFactory dbConnectionFactory, TimeProvider timeProvider)
+        public AccountRepository(IDbConnection dbConnection)
         {
-            _dbConnectionFactory = dbConnectionFactory;
-            _timeProvider = timeProvider;
+            _cn = dbConnection;
         }
 
-        public async Task<Account?> GetAsync(uint id)
+        public async Task<Account?> GetAsync(ulong id)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "select * from Accounts where Id=@id",
-                    parameters: new { id }
-                );
+                Id = id
+            };
 
-                return await cn.QuerySingleOrDefaultAsync<Account>(command);
-            }
+            string sql = "SELECT accounts.* FROM accounts WHERE Id=@Id";
+            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
         }
 
-        public async Task<IEnumerable<Account>> GetAllAsync()
+        public async Task<ulong?> CreateAsync(Account entity)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "select * from Accounts"
-                );
+                UniqueName = entity.UniqueName,
+                DisplayName = entity.DisplayName
+            };
 
-                return await cn.QueryAsync<Account>(command);
-            }
+            string sql = @"INSERT INTO accounts (UniqueName,DisplayName) 
+                           VALUES (@UniqueName,@DisplayName) RETURNING Id";
+
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<bool> CreateAsync(Account entity)
+        public async Task<ulong?> UpdateAsync(ulong id, Account entity)
         {
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: @"insert into Accounts (UniqueName, DisplayName) 
-                                   values (@UniqueName, @DisplayName)",
-                    parameters: entity
-                );
+                Id = id,
+                UniqueName = entity.UniqueName,
+                DisplayName = entity.DisplayName,
+                Status = entity.Status
+            };
 
-                return await cn.ExecuteAsync(command) == 1;
-            }
+            string sql = @"UPDATE accounts
+                           SET UniqueName = @UniqueName,
+                               DisplayName = @DisplayName,
+                               Status = @Status
+                           WHERE Id = @Id";
+
+            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
         }
 
-        public async Task<bool> UpdateAsync(uint id, Account entity)
+        public async Task<ulong?> DeleteAsync(ulong id)
         {
-            entity.UpdatedAt = _timeProvider.GetUtcNow();
-
-            using (var cn = _dbConnectionFactory.Create())
+            var parameters = new
             {
-                var command = new CommandDefinition(
-                    commandText: "update Accounts set UpdatedAt=@UpdatedAt, UniqueName=@uniqueName, DisplayName=@displayName where Id=@id",
-                    parameters: new
-                    {
-                        entity.UpdatedAt,
-                        entity.UniqueName,
-                        entity.DisplayName,
-                        id
-                    }
-                );
+                Id = id
+            };
 
-                return await cn.ExecuteAsync(command) == 1;
-            }
+            string sql = @"DELETE FROM accounts WHERE Id = @Id RETURNING Id";
+            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<bool> DeleteAsync(uint id)
+        public void Dispose()
         {
-            using (var cn = _dbConnectionFactory.Create())
-            {
-                var command = new CommandDefinition(
-                    commandText: "delete from Accounts where Id=@id",
-                    parameters: new { id }
-                );
-
-                return await cn.ExecuteAsync(command) == 1;
-            }
-        }
-
-        public async Task<Account?> GetByUniqueNameAsync(string uniqueName)
-        {
-            using (var cn = _dbConnectionFactory.Create())
-            {
-                var command = new CommandDefinition(
-                    commandText: "select * from Accounts where UniqueName=@uniqueName",
-                    parameters: new { uniqueName }
-                );
-
-                return await cn.QuerySingleOrDefaultAsync<Account>(command);
-            }
+            _cn.Dispose();
         }
     }
 }

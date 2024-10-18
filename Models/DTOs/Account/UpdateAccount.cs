@@ -2,7 +2,8 @@
 {
     public class UpdateAccount
     {
-        public string? UniqueName { get; set; }
-        public string? DisplayName { get; set; }
+        public required string UniqueName { get; set; }
+        public required string DisplayName { get; set; }
+        public string? Status { get; set; }
     }
 }

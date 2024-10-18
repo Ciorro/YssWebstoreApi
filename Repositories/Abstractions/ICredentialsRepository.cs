@@ -2,9 +2,9 @@
 
 namespace YssWebstoreApi.Repositories.Abstractions
 {
-    public interface ICredentialRepository : IRepository<Credentials>
+    public interface ICredentialsRepository : IRepository<Credentials>
     {
+        Task<Credentials?> GetByAccountIdAsync(ulong id);
         Task<Credentials?> GetByEmailAsync(string email);
-        Task<Credentials?> GetByAccountAsync(uint accountId);
     }
 }

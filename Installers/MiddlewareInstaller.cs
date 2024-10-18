@@ -1,6 +1,8 @@
-﻿namespace YssWebstoreApi.Middlewares
+﻿using YssWebstoreApi.Middlewares;
+
+namespace YssWebstoreApi.Installers
 {
-    public static class MiddlewareExtensions
+    public static class MiddlewareInstaller
     {
         public static void UseVerification(this IApplicationBuilder builder)
         {

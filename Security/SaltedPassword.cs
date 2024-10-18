@@ -13,18 +13,18 @@ namespace YssWebstoreApi.Security
 
         [SetsRequiredMembers]
         public SaltedPassword(string password)
-            : this(password, SecurityUtils.GetRandomString(32))
-        { }
+        {
+            var newPassword = Create(password, SecurityUtils.GetRandomString(32));
+            PasswordHash = newPassword.PasswordHash;
+            PasswordSalt = newPassword.PasswordSalt;
+        }
 
-        [SetsRequiredMembers]
-        public SaltedPassword(string password, string passwordSalt)
+        public static SaltedPassword Create(string password, string passwordSalt)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(password, nameof(password));
             ArgumentException.ThrowIfNullOrWhiteSpace(passwordSalt, nameof(passwordSalt));
 
-            PasswordSalt = passwordSalt;
-            PasswordHash = password + PasswordSalt;
-
+            string passwordHash = password + passwordSalt;
             var passwordData = Encoding.UTF8.GetBytes(password);
 
             using (var sha256 = SHA256.Create())
@@ -32,7 +32,13 @@ namespace YssWebstoreApi.Security
                 passwordData = sha256.ComputeHash(passwordData);
             }
 
-            PasswordHash = Convert.ToBase64String(passwordData);
+            passwordHash = Convert.ToBase64String(passwordData);
+
+            return new SaltedPassword
+            {
+                PasswordHash = passwordHash,
+                PasswordSalt = passwordSalt
+            };
         }
     }
 }

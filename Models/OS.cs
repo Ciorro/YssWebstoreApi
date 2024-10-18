@@ -2,6 +2,9 @@
 {
     public enum OS
     {
-        Win = 1, Linux, Mac, Android
+        Win     = 1, 
+        Linux   = 2, 
+        Mac     = 4, 
+        Android = 8
     }
 }
