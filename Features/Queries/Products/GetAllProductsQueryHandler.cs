@@ -44,7 +44,7 @@ namespace YssWebstoreApi.Features.Queries.Products
                 result.Account = account;
                 if (!string.IsNullOrEmpty(imagePath))
                 {
-                    result.Gallery.Add(imagePath);
+                    result.Images.Add(imagePath);
                 }
                 return result;
 

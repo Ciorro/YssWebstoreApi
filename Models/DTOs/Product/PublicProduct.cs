@@ -12,7 +12,7 @@ namespace YssWebstoreApi.Models.DTOs.Product
         public required string Description { get; set; }
         public required string SourceUrl { get; set; }
         public required float Rating { get; set; }
-        public IList<string> Gallery { get; set; } = [];
+        public IList<string> Images { get; set; } = [];
         public IList<Tag> Tags { get; set; } = [];
         public OS? SupportedOS { get; set; }
     }

@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Commands.Products;
 using YssWebstoreApi.Features.Queries.Products;
+using YssWebstoreApi.Models.Api;
 using YssWebstoreApi.Models.DTOs.Product;
+using YssWebstoreApi.Models.Query;
 
 namespace YssWebstoreApi.Controllers.Products
 {
@@ -94,6 +96,19 @@ namespace YssWebstoreApi.Controllers.Products
             return resultId.HasValue ?
                 Ok(resultId) :
                 Problem();
+        }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts(
+            [FromQuery] SearchProduct searchProduct,
+            [FromQuery] SortOptions sortOptions,
+            [FromQuery] PageOptions pageOptions)
+        {
+            return Ok(await _mediator.Send(new SearchProductsQuery(searchProduct)
+            {
+                SortOptions = sortOptions,
+                PageOptions = pageOptions
+            }));
         }
     }
 }
