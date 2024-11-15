@@ -5,16 +5,16 @@ using YssWebstoreApi.Models.DTOs.Accounts;
 
 namespace YssWebstoreApi.Features.Queries.Accounts
 {
-    public class GetPublicAccountQueryHandler : IRequestHandler<GetPublicAccountQuery, PublicAccount?>
+    public class GetPublicAccountByIdQueryHandler : IRequestHandler<GetPublicAccountByIdQuery, PublicAccount?>
     {
         private readonly IDbConnection _cn;
 
-        public GetPublicAccountQueryHandler(IDbConnection dbConnection)
+        public GetPublicAccountByIdQueryHandler(IDbConnection dbConnection)
         {
             _cn = dbConnection;
         }
 
-        public async Task<PublicAccount?> Handle(GetPublicAccountQuery request, CancellationToken cancellationToken)
+        public async Task<PublicAccount?> Handle(GetPublicAccountByIdQuery request, CancellationToken cancellationToken)
         {
             var parameters = new
             {

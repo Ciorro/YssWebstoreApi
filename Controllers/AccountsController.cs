@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Commands.Accounts;
 using YssWebstoreApi.Features.Queries.Accounts;
+using YssWebstoreApi.Middlewares.Attributes;
 using YssWebstoreApi.Models.DTOs.Accounts;
 
 namespace YssWebstoreApi.Controllers
@@ -19,17 +20,17 @@ namespace YssWebstoreApi.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("{accountId:int}")]
-        public async Task<IActionResult> GetPublicAccount([FromRoute] ulong accountId)
+        [HttpGet("{uniqueName}")]
+        public async Task<IActionResult> GetPublicAccount([FromRoute] string uniqueName)
         {
-            var account = await _mediator.Send(new GetPublicAccountQuery(accountId));
+            var account = await _mediator.Send(new GetPublicAccountByNameQuery(uniqueName));
 
             return account is PublicAccount ?
                 Ok(account) :
                 NotFound();
         }
 
-        [HttpGet, Authorize]
+        [HttpGet, Authorize, AllowUnverified]
         public async Task<IActionResult> GetPrivateAccount()
         {
             try
