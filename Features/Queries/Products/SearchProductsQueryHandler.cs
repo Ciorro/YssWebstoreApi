@@ -56,7 +56,7 @@ namespace YssWebstoreApi.Features.Queries.Products
 
                 result.Account = account;
                 if (!string.IsNullOrEmpty(imagePath))
-                {
+                {   
                     result.Images.Add(imagePath);
                 }
                 return result;
@@ -69,7 +69,7 @@ namespace YssWebstoreApi.Features.Queries.Products
             {
                 PageNumber = pageOptions.PageNumber,
                 PageSize = pageSize,
-                TotalCount = results.Count,
+                ItemCount = results.Count,
                 Items = results.Values
                     .Skip(pageOptions.PageNumber * pageSize)
                     .Take(pageSize)
@@ -95,11 +95,13 @@ namespace YssWebstoreApi.Features.Queries.Products
                 });
             }
 
-            for (int i = 0; i < searchParams.Tags.Length; i++)
+            for (int i = 0; i < searchParams.Tags.Count; i++)
             {
                 var tag = searchParams.Tags[i];
-                builder.Where($"products.Tags LIKE @Tag{i}",
-                    new SqlParameter($"Tag{i}", $"%{tag}%"));
+                var p = new DynamicParameters();
+                p.Add($"Tag{i}", $"%{tag}%");
+
+                builder.Where($"products.Tags LIKE @Tag{i}", p);
             }
         }
 

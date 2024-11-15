@@ -8,6 +8,6 @@ namespace YssWebstoreApi.Models.DTOs.Product
         public string? AccountName { get; set; }
 
         [FromQuery(Name = "tag")]
-        public string[] Tags { get; set; } = [];
+        public IList<Tag> Tags { get; set; } = [];
     }
 }
