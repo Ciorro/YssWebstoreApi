@@ -4,18 +4,18 @@ namespace YssWebstoreApi.Models
 {
     public record Tag : IParsable<Tag>
     {
-        public string Type { get; }
-        public string Name { get; }
+        public string Group { get; }
+        public string Value { get; }
 
-        public Tag(string type, string name)
+        public Tag(string group, string value)
         {
-            Type = type;
-            Name = name;
+            Group = group;
+            Value = value;
         }
 
         public override string ToString()
         {
-            return $"{Type}-{Name}";
+            return $"{Group}-{Value}";
         }
 
         public static Tag Parse(string s)
@@ -50,28 +50,28 @@ namespace YssWebstoreApi.Models
                 return false;
             }
 
-            string type = "";
-            string name = "";
+            string group = "";
+            string value = "";
 
             int dashIndex = s.IndexOf('-');
             if (dashIndex == -1)
             {
-                type = "tag";
-                name = s;
+                group = "tag";
+                value = s;
             }
             else
             {
-                type = s[..dashIndex];
-                name = s[(dashIndex + 1)..];
+                group = s[..dashIndex];
+                value = s[(dashIndex + 1)..];
             }
 
-            if (string.IsNullOrWhiteSpace(type) || string.IsNullOrWhiteSpace(name))
+            if (string.IsNullOrWhiteSpace(group) || string.IsNullOrWhiteSpace(value))
             {
                 result = null;
                 return false;
             }
 
-            result = new Tag(type, name);
+            result = new Tag(group, value);
             return true;
         }
     }
