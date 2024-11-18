@@ -27,8 +27,7 @@ namespace YssWebstoreApi.Features.Queries.Products
                            JOIN credentials ON credentials.AccountId = accounts.Id
                            LEFT JOIN packages ON packages.ProductId = products.Id
                            LEFT JOIN images ON images.GalleryId = products.GalleryId
-                           LEFT JOIN comments ON products.ThreadId = comments.ThreadId
-                           LEFT JOIN reviews ON reviews.CommentId = comments.Id
+                           LEFT JOIN reviews ON reviews.ProductId = products.Id
                            GROUP BY products.Id, images.Id";
 
             var results = new Dictionary<ulong, PublicProduct>();

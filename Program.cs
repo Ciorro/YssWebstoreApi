@@ -83,6 +83,7 @@ namespace YssWebstoreApi
 
             var app = builder.Build();
 
+
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(
@@ -90,11 +91,13 @@ namespace YssWebstoreApi
                 RequestPath = "/static"
             });
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseCors(
                 options => options
                 .WithOrigins("http://localhost:3000")
                 .WithOrigins("https://localhost:3000")
+                .WithOrigins("http://192.168.0.14:3000")
+                .WithOrigins("https://192.168.0.14:3000")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod()

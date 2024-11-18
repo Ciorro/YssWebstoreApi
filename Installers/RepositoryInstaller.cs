@@ -11,6 +11,7 @@ namespace YssWebstoreApi.Installers
             services.AddScoped<IRepository<Account>, AccountRepository>();
             services.AddScoped<IRepository<Product>, ProductRepository>();
             services.AddScoped<IRepository<Package>, PackageRepository>();
+            services.AddScoped<IRepository<Review>, ReviewRepository>();
 
             services.AddScoped<ICredentialsRepository, CredentialsRepository>();
             services.AddScoped<IRepository<Credentials>>(s =>
