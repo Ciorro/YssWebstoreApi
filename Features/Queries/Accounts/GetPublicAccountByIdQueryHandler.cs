@@ -23,6 +23,7 @@ namespace YssWebstoreApi.Features.Queries.Accounts
 
             string sql = @"SELECT accounts.Id,
                                   accounts.CreatedAt,
+                                  accounts.UpdatedAt,
                                   accounts.UniqueName,
                                   accounts.DisplayName,
                                   accounts.Status
