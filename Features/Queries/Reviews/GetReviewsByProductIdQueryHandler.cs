@@ -1,12 +1,14 @@
 ﻿using Dapper;
 using MediatR;
 using System.Data;
+using YssWebstoreApi.Models.Api;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Review;
+using YssWebstoreApi.Models.Query;
 
 namespace YssWebstoreApi.Features.Queries.Reviews
 {
-    public class GetReviewsByProductIdQueryHandler : IRequestHandler<GetReviewsByProductIdQuery, IList<PublicReview>>
+    public class GetReviewsByProductIdQueryHandler : IRequestHandler<GetReviewsByProductIdQuery, Page<PublicReview>>
     {
         private readonly IDbConnection _cn;
 
@@ -15,7 +17,7 @@ namespace YssWebstoreApi.Features.Queries.Reviews
             _cn = dbConnection;
         }
 
-        public async Task<IList<PublicReview>> Handle(GetReviewsByProductIdQuery request, CancellationToken cancellationToken)
+        public async Task<Page<PublicReview>> Handle(GetReviewsByProductIdQuery request, CancellationToken cancellationToken)
         {
             var parameters = new
             {
@@ -26,7 +28,8 @@ namespace YssWebstoreApi.Features.Queries.Reviews
                                   accounts.*
                            FROM reviews
                            LEFT JOIN accounts ON reviews.AccountId=accounts.Id
-                           WHERE reviews.ProductId = @ProductId";
+                           WHERE reviews.ProductId = @ProductId
+                           ORDER BY reviews.CreatedAt DESC";
 
             var reviews = await _cn.QueryAsync<PublicReview, PublicAccount, PublicReview>(sql, (review, account) =>
             {
@@ -34,7 +37,19 @@ namespace YssWebstoreApi.Features.Queries.Reviews
                 return review;
             }, parameters);
 
-            return reviews.ToList();
+            var pageOptions = request.PageOptions;
+            var reviewCount = reviews.Count();
+            var pageSize = pageOptions.PageSize ?? reviewCount;
+
+            return new Page<PublicReview>
+            {
+                PageNumber = pageOptions.PageNumber,
+                PageSize = pageSize,
+                ItemCount = reviews.Count(),
+                Items = reviews.Skip(pageOptions.PageNumber * pageSize)
+                               .Take(pageSize)
+                               .ToArray()
+            };
         }
     }
 }

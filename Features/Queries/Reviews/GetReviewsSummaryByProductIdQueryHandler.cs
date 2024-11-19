@@ -24,11 +24,11 @@ namespace YssWebstoreApi.Features.Queries.Reviews
             string sql = @"SELECT Rate,
                                   COUNT(*) AS RateCount
                            FROM reviews
-                           WHERE reviews.ProductId=1
+                           WHERE reviews.ProductId=@ProductId
                            GROUP BY rate";
 
             return (await _cn.QueryAsync<(int rate, int count)>(sql, parameters))
-                .Aggregate(new ReviewsSummary(), (total, next) =>
+                .Aggregate(new ReviewsSummary(1, 5), (total, next) =>
                 {
                     total.AddRates(next.rate, next.count);
                     return total;

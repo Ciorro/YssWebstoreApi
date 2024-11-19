@@ -2,15 +2,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features.Commands.Accounts;
 using YssWebstoreApi.Features.Commands.Reviews;
 using YssWebstoreApi.Features.Queries.Reviews;
-using YssWebstoreApi.Models;
+using YssWebstoreApi.Models.Api;
 using YssWebstoreApi.Models.DTOs.Review;
 
 namespace YssWebstoreApi.Controllers.Reviews
 {
-    [Route("api/[controller]/product/{productId:int}")]
+    [Route("api/product/{productId:int}/[controller]")]
     [ApiController]
     public class ReviewsController : ControllerBase
     {
@@ -22,9 +21,12 @@ namespace YssWebstoreApi.Controllers.Reviews
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProductReviews(ulong productId)
+        public async Task<IActionResult> GetProductReviews(ulong productId, PageOptions pageOptions)
         {
-            return Ok(await _mediator.Send(new GetReviewsByProductIdQuery(productId)));
+            return Ok(await _mediator.Send(new GetReviewsByProductIdQuery(productId)
+            {
+                PageOptions = pageOptions
+            }));
         }
 
         [HttpGet("account/{accountId:int}")]
