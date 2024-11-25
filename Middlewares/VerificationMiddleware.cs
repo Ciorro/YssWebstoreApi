@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Middlewares.Attributes;
 
 namespace YssWebstoreApi.Middlewares
@@ -21,14 +22,17 @@ namespace YssWebstoreApi.Middlewares
 
                 bool isVerified = httpContext.User.Claims.Any(x =>
                 {
-                    return x.Type == "is_verified" && x.Value == "True";
+                    return x.Type == "is_verified" && x.Value.ToLower() == "true";
                 });
 
                 if (!isVerified && attribute is null)
                 {
-                    httpContext.Response.ContentType = "text/plain";
-                    httpContext.Response.StatusCode = 401;
-                    await httpContext.Response.WriteAsync("Unverified user.");
+                    await Results.Problem(new ProblemDetails
+                    {
+                        Status = StatusCodes.Status403Forbidden,
+                        Title = "User not verified.",
+                        Detail = "The user is not verified. Please verify your email."
+                    }).ExecuteAsync(httpContext);
 
                     return;
                 }

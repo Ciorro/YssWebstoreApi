@@ -19,7 +19,6 @@ namespace YssWebstoreApi.Features.Commands.Auth
 
         public async Task<string?> Handle(GetProlongedRefreshTokenCommand request, CancellationToken cancellationToken)
         {
-
             var refreshToken = request.CurrentRefreshToken;
             var setsNewToken = string.IsNullOrEmpty(request.CurrentRefreshToken);
             var expiresAt = _timeProvider.GetUtcNow().Add(request.Length);

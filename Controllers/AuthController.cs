@@ -1,7 +1,10 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Commands.Auth;
 using YssWebstoreApi.Features.Queries.Auth;
+using YssWebstoreApi.Middlewares.Attributes;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Auth;
 
@@ -106,6 +109,26 @@ namespace YssWebstoreApi.Controllers
             });
 
             return Ok(tokenCredentials!);
+        }
+
+        [HttpPost("generateVerificationCode"), Authorize, AllowUnverified]
+        public async Task<IActionResult> GenerateVerificationCode()
+        {
+            var result = await _mediator.Send(new GenerateVerificationCodeCommand(User.GetUserId()));
+
+            return result ? 
+                Ok() : 
+                Problem();
+        }
+
+        [HttpPost("verify"), Authorize, AllowUnverified]
+        public async Task<IActionResult> VerifyAccount([FromBody] string verificationCode)
+        {
+            var result = await _mediator.Send(new VerifyAccountCommand(User.GetUserId(), verificationCode));
+
+            return result ?
+                Ok() :
+                Problem();
         }
     }
 }
