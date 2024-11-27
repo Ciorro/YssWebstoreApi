@@ -23,7 +23,8 @@ namespace YssWebstoreApi.Services.Jwt
             var token = new JwtSecurityToken(
                 claims: claims,
                 notBefore: now,
-                expires: now.AddMinutes(1),
+                expires: now.AddMinutes(
+                    _configuration.GetValue<int?>("Jwt:Lifetime") ?? 1),
                 signingCredentials: new SigningCredentials(
                     new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value!)),
