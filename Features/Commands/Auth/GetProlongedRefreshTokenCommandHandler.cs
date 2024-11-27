@@ -1,6 +1,5 @@
-﻿using Dapper;
-using MediatR;
-using System.Data;
+﻿using MediatR;
+using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 using YssWebstoreApi.Security;
 
@@ -8,45 +7,68 @@ namespace YssWebstoreApi.Features.Commands.Auth
 {
     public class GetProlongedRefreshTokenCommandHandler : IRequestHandler<GetProlongedRefreshTokenCommand, string?>
     {
-        private readonly IDbConnection _cn;
+        private readonly ICredentialsRepository _credentials;
         private readonly TimeProvider _timeProvider;
+        private readonly IConfiguration _configuration;
 
-        public GetProlongedRefreshTokenCommandHandler(IDbConnection dbConnection, TimeProvider timeProvider)
+        public GetProlongedRefreshTokenCommandHandler(ICredentialsRepository credentials, TimeProvider timeProvider, IConfiguration configuration)
         {
-            _cn = dbConnection;
+            _credentials = credentials;
             _timeProvider = timeProvider;
+            _configuration = configuration;
         }
 
         public async Task<string?> Handle(GetProlongedRefreshTokenCommand request, CancellationToken cancellationToken)
         {
-            var refreshToken = request.CurrentRefreshToken;
-            var setsNewToken = string.IsNullOrEmpty(request.CurrentRefreshToken);
-            var expiresAt = _timeProvider.GetUtcNow().Add(request.Length);
-
-            if (setsNewToken)
+            var credentials = await _credentials.GetByAccountIdAsync(request.AccountId);
+            if (credentials is not null)
             {
-                refreshToken = SecurityUtils.GetRandomString(255);
+                var setsNewToken = string.IsNullOrEmpty(request.CurrentRefreshToken);
+                if (setsNewToken)
+                {
+                    return await GenerateToken(credentials, request);
+                }
+
+                if (await ProlongToken(credentials, request))
+                {
+                    return credentials.RefreshToken;
+                }
             }
 
-            var parameters = new
-            {
-                AccountId = request.AccountId,
-                RefreshToken = refreshToken,
-                RefreshTokenExpiresAt = expiresAt
-            };
+            return null;
+        }
 
-            string sql = @"UPDATE credentials SET
-                           RefreshToken=@RefreshToken,
-                           RefreshTokenExpiresAt=@RefreshTokenExpiresAt
-                           WHERE AccountId=@AccountId";
+        private async Task<string?> GenerateToken(Credentials credentials, GetProlongedRefreshTokenCommand request)
+        {
+            var currentTime = _timeProvider.GetUtcNow().UtcDateTime;
+            var lifetime = _configuration.GetValue<TimeSpan?>("Security:RefreshTokenLifetime")
+                ?? TimeSpan.FromDays(7);
 
-            if (!setsNewToken)
+            credentials.RefreshToken = SecurityUtils.GetRandomString(255);
+            credentials.RefreshTokenExpiresAt = currentTime.Add(lifetime);
+
+            if (await _credentials.UpdateAsync(credentials) == credentials.Id)
             {
-                sql += " AND RefreshToken=@RefreshToken";
+                return credentials.RefreshToken;
             }
 
-            return await _cn.ExecuteAsync(sql,parameters) == 1 ?
-                refreshToken : null;
+            return null;
+        }
+
+        private async Task<bool> ProlongToken(Credentials credentials, GetProlongedRefreshTokenCommand request)
+        {
+            var currentTime = _timeProvider.GetUtcNow().DateTime;
+            var lifetime = _configuration.GetValue<TimeSpan?>("Security:RefreshTokenLifetime")
+                ?? TimeSpan.FromDays(7);
+
+            if (credentials.RefreshToken == request.CurrentRefreshToken &&
+                currentTime <= credentials.RefreshTokenExpiresAt?.DateTime)
+            {
+                credentials.RefreshTokenExpiresAt = currentTime.Add(lifetime);
+                return await _credentials.UpdateAsync(credentials) == credentials.Id;
+            }
+
+            return false;
         }
     }
 }

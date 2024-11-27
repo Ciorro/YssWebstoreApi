@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using System.Data;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 
@@ -23,7 +22,7 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = "SELECT accounts.* FROM accounts WHERE Id=@Id";
-            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+            return await _cn.QuerySingleOrDefaultAsync<Account>(sql, parameters);
         }
 
         public async Task<ulong?> CreateAsync(Account entity)
@@ -40,15 +39,12 @@ namespace YssWebstoreApi.Repositories
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<ulong?> UpdateAsync(ulong id, Account entity)
+        public async Task<ulong?> UpdateAsync(Account entity)
         {
-            var parameters = new
+            if (!entity.Id.HasValue)
             {
-                Id = id,
-                UniqueName = entity.UniqueName,
-                DisplayName = entity.DisplayName,
-                Status = entity.Status
-            };
+                throw new ArgumentNullException(nameof(Account.Id));
+            }
 
             string sql = @"UPDATE accounts
                            SET UniqueName = @UniqueName,
@@ -56,7 +52,7 @@ namespace YssWebstoreApi.Repositories
                                Status = @Status
                            WHERE Id = @Id";
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+            return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
         public async Task<ulong?> DeleteAsync(ulong id)

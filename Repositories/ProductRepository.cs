@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using System.Data;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 
@@ -23,7 +22,7 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"SELECT products.* FROM products WHERE Id=@Id";
-            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+            return await _cn.QuerySingleOrDefaultAsync<Product>(sql, parameters);
         }
 
         public async Task<ulong?> CreateAsync(Product entity)
@@ -43,23 +42,22 @@ namespace YssWebstoreApi.Repositories
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<ulong?> UpdateAsync(ulong id, Product entity)
+        public async Task<ulong?> UpdateAsync(Product entity)
         {
-            var parameters = new
+            if (!entity.Id.HasValue)
             {
-                Id = id,
-                Name = entity.Name,
-                Description = entity.Description,
-                SourceUrl = entity.SourceUrl
-            };
+                throw new ArgumentNullException(nameof(Product.Id));
+            }
 
             string sql = @"UPDATE products
-                           SET Name = @Name,
+                           SET AccountId = @AccountId,
+                               Name = @Name,
                                Description = @Description,
-                               SourceUrl = @SourceUrl
+                               SourceUrl = @SourceUrl,
+                               Tags = @Tags
                            WHERE Id = @Id";
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+            return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
         public async Task<ulong?> DeleteAsync(ulong id)

@@ -15,12 +15,19 @@ namespace YssWebstoreApi.Features.Commands.Accounts
 
         public async Task<ulong?> Handle(UpdateAccountCommand request, CancellationToken cancellationToken)
         {
-            return await _accounts.UpdateAsync(request.AccountId, new Account
+            var account = await _accounts.GetAsync(request.AccountId);
+            if (account is not null)
             {
-                UniqueName = request.UniqueName,
-                DisplayName = request.DisplayName,
-                Status = request.Status
-            });
+                account.UniqueName = request.UniqueName;
+                account.DisplayName = request.DisplayName;
+                account.Status = request.Status;
+
+                return await _accounts.UpdateAsync(account);
+            }
+
+
+            //TODO: Return error
+            return null;
         }
     }
 }

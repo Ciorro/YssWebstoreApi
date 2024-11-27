@@ -21,28 +21,22 @@ namespace YssWebstoreApi.Features.Commands.Auth
         public async Task<bool> Handle(VerifyAccountCommand request, CancellationToken cancellationToken)
         {
             var credentials = await _credentials.GetByAccountIdAsync(request.AccountId);
-            var codeExpiresAt = credentials?.VerificationCodeExpiresAt?.DateTime ?? DateTime.MinValue;
-            var currentTime = _timeProvider.GetUtcNow().DateTime;
-
-            if (credentials is null ||
-                credentials.VerificationCode != request.VerificationCode ||
-                codeExpiresAt < currentTime)
+            if (credentials is not null)
             {
-                throw new UnauthorizedAccessException();
+                var currentTime = _timeProvider.GetUtcNow().DateTime;
+
+                if (credentials.VerificationCode == request.VerificationCode &&
+                    credentials.VerificationCodeExpiresAt?.DateTime >= currentTime)
+                {
+                    credentials.IsVerified = true;
+                    credentials.VerificationCode = null;
+                    credentials.VerificationCodeExpiresAt = null;
+
+                    return await _credentials.UpdateAsync(credentials) == credentials.Id;
+                }
             }
 
-            var parameters = new
-            {
-                Id = credentials.Id
-            };
-
-            string sql = @"UPDATE credentials SET
-                               IsVerified=1,
-                               VerificationCode=NULL,
-                               VerificationCodeExpiresAt=NULL
-                           WHERE credentials.Id=@Id";
-
-            return await _cn.ExecuteAsync(sql, parameters) == 1;
+            return false;
         }
     }
 }

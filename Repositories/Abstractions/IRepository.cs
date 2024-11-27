@@ -1,10 +1,12 @@
-﻿namespace YssWebstoreApi.Repositories.Abstractions
+﻿using YssWebstoreApi.Models.Abstractions;
+
+namespace YssWebstoreApi.Repositories.Abstractions
 {
-    public interface IRepository<T>
+    public interface IRepository<T> where T : IEntity
     {
         Task<T?> GetAsync(ulong id);
         Task<ulong?> CreateAsync(T entity);
-        Task<ulong?> UpdateAsync(ulong id, T entity);
+        Task<ulong?> UpdateAsync(T entity);
         Task<ulong?> DeleteAsync(ulong id);
     }
 }

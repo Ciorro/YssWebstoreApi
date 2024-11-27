@@ -21,8 +21,8 @@ namespace YssWebstoreApi.Repositories
                 Id = id
             };
 
-            string sql = @"SELECT reviews.* FROM packages WHERE Id=@Id";
-            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+            string sql = @"SELECT reviews.* FROM reviews WHERE Id=@Id";
+            return await _cn.QuerySingleOrDefaultAsync<Review>(sql, parameters);
         }
 
         public async Task<ulong?> CreateAsync(Review entity)
@@ -41,21 +41,21 @@ namespace YssWebstoreApi.Repositories
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<ulong?> UpdateAsync(ulong id, Review entity)
+        public async Task<ulong?> UpdateAsync(Review entity)
         {
-            var parameters = new
+            if (!entity.Id.HasValue)
             {
-                Id = id,
-                Rate = entity.Rate,
-                Content = entity.Content,
-            };
+                throw new ArgumentNullException(nameof(Review.Id));
+            }
 
             string sql = @"UPDATE reviews
-                           SET Rate = @Rate,
+                           SET AccountId = @AccountId,
+                               ProductId = @ProductId,
+                               Rate = @Rate,
                                Content = @Content
                            WHERE Id = @Id";
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+            return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
         public async Task<ulong?> DeleteAsync(ulong id)

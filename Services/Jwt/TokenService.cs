@@ -18,16 +18,17 @@ namespace YssWebstoreApi.Services.Jwt
 
         public string GetJwt(params Claim[] claims)
         {
-            var now = _timeProvider.GetUtcNow().UtcDateTime;
+            var currentTime = _timeProvider.GetUtcNow().UtcDateTime;
+            var lifetime = _configuration.GetValue<TimeSpan?>("Security:AccessTokenLifetime")
+                ?? TimeSpan.FromMinutes(1);
 
             var token = new JwtSecurityToken(
                 claims: claims,
-                notBefore: now,
-                expires: now.AddMinutes(
-                    _configuration.GetValue<int?>("Jwt:Lifetime") ?? 1),
+                notBefore: currentTime,
+                expires: currentTime.Add(lifetime),
                 signingCredentials: new SigningCredentials(
                     new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value!)),
+                        Encoding.UTF8.GetBytes(_configuration.GetSection("Security:JwtKey").Value!)),
                     SecurityAlgorithms.HmacSha256Signature
                 )
             );

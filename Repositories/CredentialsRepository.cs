@@ -1,6 +1,5 @@
 ﻿using Dapper;
 using System.Data;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 
@@ -23,7 +22,7 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = "SELECT credentials.* FROM credentials WHERE Id=@Id";
-            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+            return await _cn.QuerySingleOrDefaultAsync<Credentials>(sql, parameters);
         }
 
         public async Task<ulong?> CreateAsync(Credentials entity)
@@ -42,23 +41,27 @@ namespace YssWebstoreApi.Repositories
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<ulong?> UpdateAsync(ulong id, Credentials entity)
+        public async Task<ulong?> UpdateAsync(Credentials entity)
         {
-            var parameters = new
+            if (!entity.Id.HasValue)
             {
-                Id = id,
-                Email = entity.Email,
-                PasswordHash = entity.PasswordHash,
-                PasswordSalt = entity.PasswordSalt
-            };
+                throw new ArgumentNullException(nameof(Credentials.Id));
+            }
 
             string sql = @"UPDATE credentials
                            SET Email = @Email,
                                PasswordHash = @PasswordHash,
-                               PasswordSalt = @PasswordSalt
+                               PasswordSalt = @PasswordSalt,
+                               RefreshToken = @RefreshToken,
+                               RefreshTokenExpiresAt = @RefreshTokenExpiresAt,
+                               VerificationCode = @VerificationCode,
+                               VerificationCodeExpiresAt = @VerificationCodeExpiresAt,
+                               PasswordResetCode = @PasswordResetCode,
+                               PasswordResetCodeExpiresAt = @PasswordResetCodeExpiresAt,
+                               IsVerified = @IsVerified
                            WHERE Id = @Id";
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+            return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
         public async Task<ulong?> DeleteAsync(ulong id)

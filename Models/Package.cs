@@ -1,6 +1,8 @@
-﻿namespace YssWebstoreApi.Models
+﻿using YssWebstoreApi.Models.Abstractions;
+
+namespace YssWebstoreApi.Models
 {
-    public class Package
+    public class Package : IEntity
     {
         public ulong? Id { get; set; }
         public DateTimeOffset? CreatedAt { get; set; }

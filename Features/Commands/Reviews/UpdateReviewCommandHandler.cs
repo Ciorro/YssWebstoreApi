@@ -15,11 +15,17 @@ namespace YssWebstoreApi.Features.Commands.Reviews
 
         public async Task<ulong?> Handle(UpdateReviewCommand request, CancellationToken cancellationToken)
         {
-            return await _reviews.UpdateAsync(request.ReviewId, new Review
+            var review = await _reviews.GetAsync(request.ReviewId);
+            if (review is not null)
             {
-                Rate = request.Rate,
-                Content = request.Content
-            });
+                review.Rate = request.Rate;
+                review.Content = request.Content;
+
+                return await _reviews.UpdateAsync(review);
+            }
+
+            //TODO: return error
+            return null;
         }
     }
 }

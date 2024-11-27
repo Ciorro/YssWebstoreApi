@@ -1,36 +1,38 @@
-﻿using Dapper;
-using MediatR;
-using System.Data;
+﻿using MediatR;
 using System.Security.Cryptography;
+using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Auth
 {
     public class GenerateVerificationCodeCommandHandler : IRequestHandler<GenerateVerificationCodeCommand, bool>
     {
-        private readonly IDbConnection _cn;
+        private readonly ICredentialsRepository _credentials;
         private readonly TimeProvider _timeProvider;
+        private readonly IConfiguration _configuration;
 
-        public GenerateVerificationCodeCommandHandler(IDbConnection dbConnection, TimeProvider timeProvider)
+        public GenerateVerificationCodeCommandHandler(ICredentialsRepository credentials, TimeProvider timeProvider, IConfiguration configuration)
         {
-            _cn = dbConnection;
+            _credentials = credentials;
             _timeProvider = timeProvider;
+            _configuration = configuration;
         }
 
         public async Task<bool> Handle(GenerateVerificationCodeCommand request, CancellationToken cancellationToken)
         {
-            var parameters = new
+            var credentials = await _credentials.GetByAccountIdAsync(request.AccountId);
+            if (credentials is not null)
             {
-                AccountId = request.AccountId,
-                VerificationCode = GenerateCode(),
-                ExpiresAt = _timeProvider.GetUtcNow().Add(TimeSpan.FromMinutes(20))
-            };
+                var lifetime = _configuration.GetValue<TimeSpan?>("Security:VerificationCodeLifetime")
+                    ?? TimeSpan.FromMinutes(20);
 
-            string sql = @"UPDATE credentials SET
-                               VerificationCode = @VerificationCode,
-                               VerificationCodeExpiresAt = @ExpiresAt
-                           WHERE AccountId = @AccountId";
+                credentials.VerificationCode = GenerateCode();
+                credentials.VerificationCodeExpiresAt = _timeProvider.GetUtcNow().Add(lifetime);
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1;
+                return await _credentials.UpdateAsync(credentials) == credentials.Id;
+            }
+
+            //TODO: return error
+            return false;
         }
 
         private string GenerateCode()

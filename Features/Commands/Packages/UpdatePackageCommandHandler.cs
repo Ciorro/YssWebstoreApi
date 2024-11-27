@@ -15,10 +15,15 @@ namespace YssWebstoreApi.Features.Commands.Packages
 
         public async Task<ulong?> Handle(UpdatePackageCommand request, CancellationToken cancellationToken)
         {
-            return await _packages.UpdateAsync(request.PackageId, new Package
+            var package = await _packages.GetAsync(request.PackageId);
+            if (package is not null)
             {
-                Name = request.Name
-            });
+                package.Name = request.Name;
+                return await _packages.UpdateAsync(package);
+            }
+
+            //TODO: return error
+            return null;
         }
     }
 }

@@ -27,8 +27,10 @@ namespace YssWebstoreApi.Features.Queries.Auth
                 return null;
             }
 
+            var currentTime = _timeProvider.GetUtcNow().DateTime;
+
             if (credentials.RefreshToken != request.RefreshToken ||
-                credentials.RefreshTokenExpiresAt < _timeProvider.GetUtcNow())
+                currentTime > credentials.RefreshTokenExpiresAt?.DateTime)
             {
                 return null;
             }

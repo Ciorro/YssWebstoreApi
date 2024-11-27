@@ -9,7 +9,7 @@ using YssWebstoreApi.Models.DTOs.Review;
 
 namespace YssWebstoreApi.Controllers.Reviews
 {
-    [Route("api/product/{productId:int}/[controller]")]
+    [Route("api/products/{productId:int}/[controller]")]
     [ApiController]
     public class ReviewsController : ControllerBase
     {

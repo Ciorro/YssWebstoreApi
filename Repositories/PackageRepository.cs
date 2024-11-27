@@ -22,7 +22,7 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"SELECT packages.* FROM packages WHERE Id=@Id";
-            return await _cn.QuerySingleOrDefaultAsync(sql, parameters);
+            return await _cn.QuerySingleOrDefaultAsync<Package>(sql, parameters);
         }
 
         public async Task<ulong?> CreateAsync(Package entity)
@@ -43,19 +43,23 @@ namespace YssWebstoreApi.Repositories
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
 
-        public async Task<ulong?> UpdateAsync(ulong id, Package entity)
+        public async Task<ulong?> UpdateAsync(Package entity)
         {
-            var parameters = new
+            if (!entity.Id.HasValue)
             {
-                Id = id,
-                Name = entity.Name,
-            };
+                throw new ArgumentNullException(nameof(Package.Id));
+            }
 
             string sql = @"UPDATE packages
-                           SET Name = @Name
+                           SET ProductId = @ProductId,
+                               Name = @Name,
+                               Version = @Version,
+                               DownloadUrl = @DownloadUrl,
+                               FileSize = @FileSize,
+                               TargetOs = @TargetOs
                            WHERE Id = @Id";
 
-            return await _cn.ExecuteAsync(sql, parameters) == 1 ? id : null;
+            return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
         public async Task<ulong?> DeleteAsync(ulong id)

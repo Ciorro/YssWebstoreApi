@@ -15,12 +15,18 @@ namespace YssWebstoreApi.Features.Commands.Products
 
         public async Task<ulong?> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
         {
-            return await _products.UpdateAsync(request.ProductId, new Product
+            var product = await _products.GetAsync(request.ProductId);
+            if (product is not null)
             {
-                Name = request.Name,
-                Description = request.Description,
-                SourceUrl = request.SourceUrl
-            });
+                product.Name = request.Name;
+                product.Description = request.Description;
+                product.SourceUrl = request.SourceUrl;
+
+                return await _products.UpdateAsync(product);
+            }
+
+            //TODO: return error
+            return null;
         }
     }
 }
