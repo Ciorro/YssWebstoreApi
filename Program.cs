@@ -3,13 +3,12 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using MySql.Data.MySqlClient;
-using System.Configuration;
 using System.Data;
-using System.Reflection;
 using System.Text;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Formatters;
+using YssWebstoreApi.Helpers;
 using YssWebstoreApi.Installers;
+using YssWebstoreApi.Services.Files;
 using YssWebstoreApi.Services.Jwt;
 
 namespace YssWebstoreApi
@@ -79,16 +78,19 @@ namespace YssWebstoreApi
             {
                 config.RegisterServicesFromAssembly(typeof(Program).Assembly);
             });
+
             builder.Services.AddSingleton<ITokenService, TokenService>();
+            builder.Services.AddSingleton<IFilesystemService>(new PhysicalFileSystem(
+                PathHelper.GetAbsolutePathRelativeToAssembly("static")));
 
             var app = builder.Build();
-
 
             app.UseFileServer(new FileServerOptions
             {
                 FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Static")),
-                RequestPath = "/static"
+                    PathHelper.GetAbsolutePathRelativeToAssembly("static")),
+                RequestPath = "/static",
+                EnableDirectoryBrowsing = app.Environment.IsDevelopment()
             });
 
             //app.UseHttpsRedirection();
