@@ -71,5 +71,17 @@ namespace YssWebstoreApi.Controllers
                 Ok(resultId) :
                 Problem();
         }
+
+        [HttpPost("{followeeUniqueName}/follow"), Authorize]
+        public async Task FollowAccount(string followeeUniqueName)
+        {
+            await _mediator.Send(new FollowAccountCommand(User.GetUserId(), followeeUniqueName));
+        }
+
+        [HttpDelete("{followeeUniqueName}/follow"), Authorize]
+        public async Task UnfollowAccount(string followeeUniqueName)
+        {
+            await _mediator.Send(new UnfollowAccountCommand(User.GetUserId(), followeeUniqueName));
+        }
     }
 }
