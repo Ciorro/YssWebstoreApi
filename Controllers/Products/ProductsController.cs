@@ -110,5 +110,53 @@ namespace YssWebstoreApi.Controllers.Products
                 PageOptions = pageOptions
             }));
         }
+
+        [HttpPost("{productId:int}/pin"), Authorize]
+        public async Task<IActionResult> PinProduct(ulong productId)
+        {
+            var product = await _mediator.Send(new GetProductByIdQuery(productId));
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            if (product.Account.Id != User.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            var resultId = await _mediator.Send(new SetProductPinnedCommand(productId)
+            {
+                IsPinned = true
+            });
+
+            return resultId.HasValue ?
+                Ok(resultId) :
+                Problem();
+        }
+
+        [HttpPost("{productId:int}/unpin"), Authorize]
+        public async Task<IActionResult> UnpinProduct(ulong productId)
+        {
+            var product = await _mediator.Send(new GetProductByIdQuery(productId));
+            if (product is null)
+            {
+                return NotFound();
+            }
+
+            if (product.Account.Id != User.GetUserId())
+            {
+                return Unauthorized();
+            }
+
+            var resultId = await _mediator.Send(new SetProductPinnedCommand(productId)
+            {
+                IsPinned = false
+            });
+
+            return resultId.HasValue ?
+                Ok(resultId) :
+                Problem();
+        }
     }
 }

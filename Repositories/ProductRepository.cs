@@ -54,7 +54,8 @@ namespace YssWebstoreApi.Repositories
                                Name = @Name,
                                Description = @Description,
                                SourceUrl = @SourceUrl,
-                               Tags = @Tags
+                               Tags = @Tags,
+                               IsPinned = @IsPinned
                            WHERE Id = @Id";
 
             return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;

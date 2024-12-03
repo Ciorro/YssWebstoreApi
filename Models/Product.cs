@@ -13,6 +13,7 @@ namespace YssWebstoreApi.Models
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? SourceUrl { get; set; }
+        public bool? IsPinned { get; set; }
         public IList<Tag> Tags { get; set; } = [];
     }
 }
