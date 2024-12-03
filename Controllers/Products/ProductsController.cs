@@ -135,7 +135,7 @@ namespace YssWebstoreApi.Controllers.Products
                 Problem();
         }
 
-        [HttpPost("{productId:int}/unpin"), Authorize]
+        [HttpDelete("{productId:int}/pin"), Authorize]
         public async Task<IActionResult> UnpinProduct(ulong productId)
         {
             var product = await _mediator.Send(new GetProductByIdQuery(productId));
