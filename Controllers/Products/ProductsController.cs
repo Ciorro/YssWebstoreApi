@@ -100,14 +100,12 @@ namespace YssWebstoreApi.Controllers.Products
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts(
-            [FromQuery] SearchProduct searchProduct,
-            [FromQuery] SortOptions sortOptions,
-            [FromQuery] PageOptions pageOptions)
+            [FromQuery] SearchProduct searchProduct)
         {
             return Ok(await _mediator.Send(new SearchProductsQuery(searchProduct)
             {
-                SortOptions = sortOptions,
-                PageOptions = pageOptions
+                SortOptions = searchProduct.SortOptions,
+                PageOptions = searchProduct.PageOptions
             }));
         }
 

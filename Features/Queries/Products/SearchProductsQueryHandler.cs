@@ -39,9 +39,9 @@ namespace YssWebstoreApi.Features.Queries.Products
                    LEFT JOIN images ON images.Id = products_images.ImageId
                    /**where**/
                    GROUP BY products.Id, images.Id
-                   ORDER BY products_images.Order ASC
                    /**orderby**/");
 
+            builder.OrderBy("products_images.Order ASC");
             BuildSearchParams(searchParams, builder);
             BuildSortOptions(sortOptions, builder);
 
@@ -94,6 +94,11 @@ namespace YssWebstoreApi.Features.Queries.Products
                 {
                     UniqueName = searchParams.AccountName
                 });
+            }
+
+            if (searchParams.PinnedOnly)
+            {
+                builder.Where("products.IsPinned = TRUE");
             }
 
             for (int i = 0; i < searchParams.Tags.Count; i++)

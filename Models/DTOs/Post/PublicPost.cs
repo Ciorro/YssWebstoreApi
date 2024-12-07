@@ -11,6 +11,5 @@ namespace YssWebstoreApi.Models.DTOs.Post
         public required string Title { get; set; }
         public required string Content { get; set; }
         public string? CoverUrl { get; set; }
-        public ulong? ProductId { get; set; }
     }
 }
