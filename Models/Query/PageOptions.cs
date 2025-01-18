@@ -5,7 +5,7 @@ namespace YssWebstoreApi.Models.Api
     public class PageOptions
     {
         [FromQuery(Name = "Page")]
-        public int PageNumber { get; set; } = 0;
+        public int PageNumber { get; set; }
         public int? PageSize { get; set; }
     }
 }

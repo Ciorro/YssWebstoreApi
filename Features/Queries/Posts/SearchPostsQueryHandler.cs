@@ -91,7 +91,7 @@ namespace YssWebstoreApi.Features.Queries.Posts
 
         private static void BuildSortOptions(SortOptions sortOptions, SqlBuilder builder)
         {
-            var direction = sortOptions.Descending ? "DESC" : "ASC";
+            var direction = sortOptions.Order.ToString();
 
             switch (sortOptions.OrderBy?.ToLower())
             {

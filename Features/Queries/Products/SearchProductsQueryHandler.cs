@@ -1,7 +1,6 @@
 ﻿using Dapper;
 using MediatR;
 using System.Data;
-using System.Data.SqlClient;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Product;
 using YssWebstoreApi.Models.Query;
@@ -25,14 +24,25 @@ namespace YssWebstoreApi.Features.Queries.Products
 
             var builder = new SqlBuilder();
             var template = builder.AddTemplate(
-                $@"SELECT products.*,
+                $@"SELECT products.Id,
+		                  products.CreatedAt,
+		                  products.UpdatedAt,
+		                  products.AccountId,
+		                  products.Name,
+		                  products.Description,
+		                  products.SourceUrl,
+		                  products.Tags,
+		                  products.IsPinned,
                           BIT_OR(packages.TargetOS) AS SupportedOS,
                           AVG(reviews.Rate) AS Rating,
                           images.Path AS Gallery,
-                          accounts.*
-                   FROM products
-                   JOIN accounts ON products.AccountId = accounts.Id
-                   JOIN credentials ON credentials.AccountId = accounts.Id
+                          accounts.Id,
+                          accounts.CreatedAt,
+                          accounts.UpdatedAt,
+                          accounts.UniqueName,
+                          accounts.DisplayName,
+                          accounts.Status
+                   FROM accounts, products
                    LEFT JOIN packages ON packages.ProductId = products.Id
                    LEFT JOIN reviews ON reviews.ProductId = products.Id
                    LEFT JOIN products_images ON products_images.ProductId = products.Id
@@ -41,9 +51,9 @@ namespace YssWebstoreApi.Features.Queries.Products
                    GROUP BY products.Id, images.Id
                    /**orderby**/");
 
-            builder.OrderBy("products_images.Order ASC");
             BuildSearchParams(searchParams, builder);
             BuildSortOptions(sortOptions, builder);
+            builder.OrderBy("products_images.Order ASC");
 
             var results = new Dictionary<ulong, PublicProduct>();
 
@@ -55,11 +65,12 @@ namespace YssWebstoreApi.Features.Queries.Products
                     results.Add(product.Id, result);
                 }
 
-                result.Account = account;
                 if (!string.IsNullOrEmpty(imagePath))
-                {   
+                {
                     result.Images.Add(imagePath);
                 }
+
+                result.Account = account;
                 return result;
 
             }, template.Parameters, splitOn: "Id, Gallery, Id");
@@ -113,15 +124,21 @@ namespace YssWebstoreApi.Features.Queries.Products
 
         private void BuildSortOptions(SortOptions sortOptions, SqlBuilder builder)
         {
-            var direction = sortOptions.Descending ? "DESC" : "ASC";
+            var direction = sortOptions.Order.ToString();
 
             switch (sortOptions.OrderBy?.ToLower())
             {
+                case "createdat":
+                    builder.OrderBy($"products.CreatedAt {direction}");
+                    break;
                 case "updatedat":
                     builder.OrderBy($"products.UpdatedAt {direction}");
                     break;
                 case "rating":
                     builder.OrderBy($"Rating {direction}");
+                    break;
+                case "name":
+                    builder.OrderBy($"products.Name {direction}");
                     break;
             }
         }
