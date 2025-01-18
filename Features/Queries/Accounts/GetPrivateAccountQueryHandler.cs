@@ -27,10 +27,12 @@ namespace YssWebstoreApi.Features.Queries.Accounts
                                   accounts.UniqueName,
                                   accounts.DisplayName,
                                   accounts.Status,
-                                  credentials.Email
-                           FROM accounts
-                           JOIN credentials ON credentials.AccountId=accounts.Id
-                           WHERE accounts.Id=@Id";
+                                  credentials.Email, 
+		                          COUNT(CASE WHEN friendships.FolloweeAccount=accounts.Id THEN 1 END) AS ""Followers"", 
+ 		                          COUNT(CASE WHEN friendships.FollowerAccount=accounts.Id THEN 1 END) AS ""Following""
+                           FROM accounts, credentials, friendships
+                           WHERE accounts.Id=credentials.AccountId AND accounts.Id=@Id
+                           GROUP BY accounts.Id";
 
             return await _cn.QuerySingleOrDefaultAsync<PrivateAccount>(sql, parameters);
         }

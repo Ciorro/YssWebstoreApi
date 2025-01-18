@@ -9,5 +9,7 @@
         public required string UniqueName { get; set; }
         public required string DisplayName { get; set; }
         public string Status { get; set; } = "";
+        public required int Followers { get; set; }
+        public required int Following { get; set; }
     }
 }

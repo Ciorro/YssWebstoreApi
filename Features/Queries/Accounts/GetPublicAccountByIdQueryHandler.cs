@@ -26,9 +26,12 @@ namespace YssWebstoreApi.Features.Queries.Accounts
                                   accounts.UpdatedAt,
                                   accounts.UniqueName,
                                   accounts.DisplayName,
-                                  accounts.Status
-                           FROM accounts
-                           WHERE Id=@Id";
+                                  accounts.Status, 
+		                          COUNT(CASE WHEN friendships.FolloweeAccount=accounts.Id THEN 1 END) AS ""Followers"", 
+ 		                          COUNT(CASE WHEN friendships.FollowerAccount=accounts.Id THEN 1 END) AS ""Following""
+                           FROM accounts, friendships
+                           WHERE accounts.Id=@Id
+                           GROUP BY accounts.Id";
 
             return await _cn.QuerySingleOrDefaultAsync<PublicAccount>(sql, parameters);
         }
