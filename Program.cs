@@ -98,8 +98,6 @@ namespace YssWebstoreApi
                 options => options
                 .WithOrigins("http://localhost:3000")
                 .WithOrigins("https://localhost:3000")
-                .WithOrigins("http://192.168.0.14:3000")
-                .WithOrigins("https://192.168.0.14:3000")
                 .AllowCredentials()
                 .AllowAnyHeader()
                 .AllowAnyMethod()
@@ -112,7 +110,7 @@ namespace YssWebstoreApi
             app.MapControllers();
             app.AddTagHandlers();
 
-            if (app.Environment.IsDevelopment())
+            if (app.Configuration.GetValue<bool>("Swagger:Enabled"))
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
