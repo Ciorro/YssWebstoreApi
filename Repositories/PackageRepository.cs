@@ -38,7 +38,8 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"INSERT INTO packages (ProductId,FileSize,Name,Version,DownloadUrl,TargetOS) 
-                           VALUES (@ProductId,@FileSize,@Name,@Version,@DownloadUrl,@TargetOS) RETURNING Id";
+                           VALUES (@ProductId,@FileSize,@Name,@Version,@DownloadUrl,@TargetOS);
+                           SELECT Id FROM packages WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }

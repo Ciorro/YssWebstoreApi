@@ -34,7 +34,8 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"INSERT INTO accounts (UniqueName,DisplayName) 
-                           VALUES (@UniqueName,@DisplayName) RETURNING Id";
+                           VALUES (@UniqueName,@DisplayName);
+                           SELECT Id FROM accounts WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }

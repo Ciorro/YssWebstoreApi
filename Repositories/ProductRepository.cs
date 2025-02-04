@@ -37,7 +37,8 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"INSERT INTO products (AccountId,Name,Description,SourceUrl,Tags) 
-                           VALUES (@AccountId,@Name,@Description,@SourceUrl,@Tags) RETURNING Id";
+                           VALUES (@AccountId,@Name,@Description,@SourceUrl,@Tags);
+                           SELECT Id FROM products WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }

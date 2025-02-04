@@ -38,7 +38,8 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"INSERT INTO images (Title,Path,AccountId) 
-                           VALUES (@Title,@Path,@AccountId) RETURNING Id";
+                           VALUES (@Title,@Path,@AccountId);
+                           SELECT Id FROM images WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }

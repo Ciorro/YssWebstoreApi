@@ -36,7 +36,8 @@ namespace YssWebstoreApi.Repositories
             };
 
             string sql = @"INSERT INTO credentials (AccountId,Email,PasswordHash,PasswordSalt) 
-                           VALUES (@AccountId,@Email,@PasswordHash,@PasswordSalt) RETURNING Id";
+                           VALUES (@AccountId,@Email,@PasswordHash,@PasswordSalt);
+                           SELECT Id FROM credentials WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
         }
