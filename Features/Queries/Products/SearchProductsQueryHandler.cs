@@ -42,7 +42,8 @@ namespace YssWebstoreApi.Features.Queries.Products
                           accounts.UniqueName,
                           accounts.DisplayName,
                           accounts.Status
-                   FROM accounts, products
+                   FROM products
+                   JOIN accounts ON products.AccountId = accounts.Id
                    LEFT JOIN packages ON packages.ProductId = products.Id
                    LEFT JOIN reviews ON reviews.ProductId = products.Id
                    LEFT JOIN products_images ON products_images.ProductId = products.Id
