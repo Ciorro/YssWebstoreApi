@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Posts
 {
-    public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, ulong?>
+    public class DeletePostCommandHandler : IRequestHandler<DeletePostCommand, bool>
     {
         private readonly IRepository<Post> _posts;
         private readonly IAttachmentRepository<Image> _images;
@@ -15,7 +15,7 @@ namespace YssWebstoreApi.Features.Commands.Posts
             _images = images;
         }
 
-        public async Task<ulong?> Handle(DeletePostCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeletePostCommand request, CancellationToken cancellationToken)
         {
             var post = await _posts.GetAsync(request.PostId);
             if (post is not null)
@@ -24,13 +24,11 @@ namespace YssWebstoreApi.Features.Commands.Posts
                 
                 if (post.ImageId.HasValue)
                 {
-                    await _images.DeleteAndDetachAsync(post.ImageId.Value);
+                    return await _images.DeleteAndDetachAsync(post.ImageId.Value);
                 }
-
-                return resultId;
             }
 
-            return null;
+            return false;
         }
     }
 }

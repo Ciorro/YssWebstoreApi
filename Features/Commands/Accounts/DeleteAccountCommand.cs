@@ -2,7 +2,7 @@
 
 namespace YssWebstoreApi.Features.Commands.Accounts
 {
-    public class DeleteAccountCommand(ulong accountId) : IRequest<ulong?>
+    public class DeleteAccountCommand(ulong accountId) : IRequest<bool>
     {
         public ulong AccountId { get; } = accountId;
     }

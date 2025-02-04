@@ -59,15 +59,15 @@ namespace YssWebstoreApi.Repositories
             return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
-        public async Task<ulong?> DeleteAsync(ulong id)
+        public async Task<bool> DeleteAsync(ulong id)
         {
             var parameters = new
             {
                 Id = id
             };
 
-            string sql = @"DELETE FROM images WHERE Id = @Id RETURNING Id";
-            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
+            string sql = @"DELETE FROM images WHERE Id = @Id";
+            return await _cn.ExecuteAsync(sql, parameters) == 1;
         }
 
         public void Dispose()
@@ -86,22 +86,23 @@ namespace YssWebstoreApi.Repositories
             return await CreateAsync(entity);
         }
 
-        public async Task<ulong?> DeleteAndDetachAsync(ulong id)
+        public async Task<bool> DeleteAndDetachAsync(ulong id)
         {
             var image = await GetAsync(id);
 
             if (image is not null)
             {
-                if (await DeleteAsync(id) == id)
+                if (await DeleteAsync(id))
                 {
                     if (await _filesystem.Exists(image.Path!))
                     {
                         await _filesystem.Delete(image.Path!);
+                        return true;
                     }
                 }
             }
 
-            return image?.Id;
+            return false;
         }
     }
 }

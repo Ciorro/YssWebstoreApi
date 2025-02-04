@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Reviews
 {
-    public class DeleteReviewCommandHandler : IRequestHandler<DeleteReviewCommand, ulong?>
+    public class DeleteReviewCommandHandler : IRequestHandler<DeleteReviewCommand, bool>
     {
         private readonly IRepository<Review> _reviews;
 
@@ -13,7 +13,7 @@ namespace YssWebstoreApi.Features.Commands.Reviews
             _reviews = reviews;
         }
 
-        public async Task<ulong?> Handle(DeleteReviewCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteReviewCommand request, CancellationToken cancellationToken)
         {
             return await _reviews.DeleteAsync(request.ReviewId);
         }

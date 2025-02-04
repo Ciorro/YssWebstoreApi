@@ -60,15 +60,15 @@ namespace YssWebstoreApi.Repositories
             return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
         }
 
-        public async Task<ulong?> DeleteAsync(ulong id)
+        public async Task<bool> DeleteAsync(ulong id)
         {
             var parameters = new
             {
                 Id = id
             };
 
-            string sql = @"DELETE FROM posts WHERE Id = @Id RETURNING Id";
-            return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
+            string sql = @"DELETE FROM posts WHERE Id = @Id";
+            return await _cn.ExecuteAsync(sql, parameters) == 1;
         }
     }
 }

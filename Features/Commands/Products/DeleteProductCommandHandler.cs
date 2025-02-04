@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Products
 {
-    public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, ulong?>
+    public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, bool>
     {
         private readonly IRepository<Product> _products;
 
@@ -13,7 +13,7 @@ namespace YssWebstoreApi.Features.Commands.Products
             _products = products;
         }
 
-        public async Task<ulong?> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteProductCommand request, CancellationToken cancellationToken)
         {
             return await _products.DeleteAsync(request.Id);
         }

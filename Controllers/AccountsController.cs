@@ -66,10 +66,7 @@ namespace YssWebstoreApi.Controllers
         public async Task<IActionResult> DeleteAccount()
         {
             var resultId = await _mediator.Send(new DeleteAccountCommand(User.GetUserId()));
-
-            return resultId.HasValue ?
-                Ok(resultId) :
-                Problem();
+            return resultId ? Ok() : Problem();
         }
 
         [HttpPost("{followeeUniqueName}/follow"), Authorize]

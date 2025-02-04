@@ -92,10 +92,7 @@ namespace YssWebstoreApi.Controllers.Products
             }
 
             var resultId = await _mediator.Send(new DeleteProductCommand(id));
-
-            return resultId.HasValue ?
-                Ok(resultId) :
-                Problem();
+            return resultId ? Ok() : Problem();
         }
 
         [HttpGet("search")]

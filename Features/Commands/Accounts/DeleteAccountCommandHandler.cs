@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Accounts
 {
-    public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand, ulong?>
+    public class DeleteAccountCommandHandler : IRequestHandler<DeleteAccountCommand, bool>
     {
         private readonly IRepository<Account> _accounts;
 
@@ -13,7 +13,7 @@ namespace YssWebstoreApi.Features.Commands.Accounts
             _accounts = accounts;
         }
 
-        public async Task<ulong?> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteAccountCommand request, CancellationToken cancellationToken)
         {
             //TODO: Add account cleanup?
             return await _accounts.DeleteAsync(request.AccountId);

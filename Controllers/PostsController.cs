@@ -83,10 +83,7 @@ namespace YssWebstoreApi.Controllers
             }
 
             var resultId = await _mediator.Send(new DeletePostCommand(postId));
-
-            return resultId.HasValue ?
-                Ok(resultId) :
-                NotFound();
+            return resultId ? Ok() : NotFound();
         }
     }
 }

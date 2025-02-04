@@ -105,10 +105,7 @@ namespace YssWebstoreApi.Controllers.Reviews
             }
 
             var resultId = await _mediator.Send(new DeleteReviewCommand(existingReview.Id));
-
-            return resultId.HasValue ?
-                Ok(resultId) :
-                Problem();
+            return resultId ? Ok() : Problem();
         }
     }
 }

@@ -6,6 +6,6 @@ namespace YssWebstoreApi.Repositories.Abstractions
         where T : IEntity, IAttachment
     {
         Task<ulong?> CreateAndAttachAsync(T entity, Stream stream);
-        Task<ulong?> DeleteAndDetachAsync(ulong id);
+        Task<bool> DeleteAndDetachAsync(ulong id);
     }
 }

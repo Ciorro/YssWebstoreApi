@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Images
 {
-    public class DeleteImageCommandHandler : IRequestHandler<DeleteImageCommand, ulong?>
+    public class DeleteImageCommandHandler : IRequestHandler<DeleteImageCommand, bool>
     {
         private readonly IAttachmentRepository<Image> _images;
 
@@ -13,7 +13,7 @@ namespace YssWebstoreApi.Features.Commands.Images
             _images = images;
         }
 
-        public async Task<ulong?> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeleteImageCommand request, CancellationToken cancellationToken)
         {
             return await _images.DeleteAndDetachAsync(request.ImageId);
         }

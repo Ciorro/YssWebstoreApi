@@ -4,7 +4,7 @@ using YssWebstoreApi.Repositories.Abstractions;
 
 namespace YssWebstoreApi.Features.Commands.Packages
 {
-    public class DeletePackageCommandHandler : IRequestHandler<DeletePackageCommand, ulong?>
+    public class DeletePackageCommandHandler : IRequestHandler<DeletePackageCommand, bool>
     {
         private readonly IRepository<Package> _packages;
 
@@ -13,7 +13,7 @@ namespace YssWebstoreApi.Features.Commands.Packages
             _packages = packages;
         }
 
-        public async Task<ulong?> Handle(DeletePackageCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(DeletePackageCommand request, CancellationToken cancellationToken)
         {
             return await _packages.DeleteAsync(request.PackageId);
         }
