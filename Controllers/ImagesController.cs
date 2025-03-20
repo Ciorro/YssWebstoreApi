@@ -41,7 +41,7 @@ namespace YssWebstoreApi.Controllers
                 return NotFound();
             }
 
-            if (existingImage.Account?.Id != User.GetUserId())
+            if (existingImage.Account.Id != User.GetUserId())
             {
                 return Unauthorized();
             }
@@ -68,10 +68,7 @@ namespace YssWebstoreApi.Controllers
             }
 
             var resultId = await _mediator.Send(new DeleteImageCommand(imageId));
-
-            return resultId.HasValue ?
-                Ok(resultId.Value) :
-                NotFound();
+            return resultId ? Ok(resultId) : NotFound();
         }
     }
 }
