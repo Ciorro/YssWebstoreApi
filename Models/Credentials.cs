@@ -15,6 +15,5 @@ namespace YssWebstoreApi.Models
         public string? PasswordResetCode { get; set; }
         public DateTimeOffset? VerificationCodeExpiresAt { get; set; }
         public DateTimeOffset? PasswordResetCodeExpiresAt { get; set; }
-        public bool IsVerified { get; set; }
     }
 }

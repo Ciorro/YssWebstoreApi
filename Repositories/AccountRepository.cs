@@ -50,7 +50,8 @@ namespace YssWebstoreApi.Repositories
             string sql = @"UPDATE accounts
                            SET UniqueName = @UniqueName,
                                DisplayName = @DisplayName,
-                               Status = @Status
+                               Status = @Status,
+                               IsVerified = @IsVerified
                            WHERE Id = @Id";
 
             return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;

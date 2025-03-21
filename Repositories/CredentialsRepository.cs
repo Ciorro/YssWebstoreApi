@@ -56,8 +56,7 @@ namespace YssWebstoreApi.Repositories
                                VerificationCode = @VerificationCode,
                                VerificationCodeExpiresAt = @VerificationCodeExpiresAt,
                                PasswordResetCode = @PasswordResetCode,
-                               PasswordResetCodeExpiresAt = @PasswordResetCodeExpiresAt,
-                               IsVerified = @IsVerified
+                               PasswordResetCodeExpiresAt = @PasswordResetCodeExpiresAt
                            WHERE Id = @Id";
 
             return await _cn.ExecuteAsync(sql, entity) == 1 ? entity.Id : null;
