@@ -11,10 +11,8 @@ namespace YssWebstoreApi.Models
         public string? Email { get; set; }
         public string? PasswordHash { get; set; }
         public string? PasswordSalt { get; set; }
-        public string? RefreshToken { get; set; }
         public string? VerificationCode { get; set; }
         public string? PasswordResetCode { get; set; }
-        public DateTimeOffset? RefreshTokenExpiresAt { get; set; }
         public DateTimeOffset? VerificationCodeExpiresAt { get; set; }
         public DateTimeOffset? PasswordResetCodeExpiresAt { get; set; }
         public bool IsVerified { get; set; }

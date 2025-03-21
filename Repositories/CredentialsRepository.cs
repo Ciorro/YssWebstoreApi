@@ -53,8 +53,6 @@ namespace YssWebstoreApi.Repositories
                            SET Email = @Email,
                                PasswordHash = @PasswordHash,
                                PasswordSalt = @PasswordSalt,
-                               RefreshToken = @RefreshToken,
-                               RefreshTokenExpiresAt = @RefreshTokenExpiresAt,
                                VerificationCode = @VerificationCode,
                                VerificationCodeExpiresAt = @VerificationCodeExpiresAt,
                                PasswordResetCode = @PasswordResetCode,

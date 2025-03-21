@@ -1,26 +1,22 @@
-﻿using Dapper;
-using MediatR;
-using System.Data;
-using System.Security.Claims;
-using YssWebstoreApi.Models.DTOs.Auth;
+﻿using MediatR;
+using YssWebstoreApi.Models;
 using YssWebstoreApi.Repositories.Abstractions;
 using YssWebstoreApi.Security;
-using YssWebstoreApi.Services.Jwt;
 
 namespace YssWebstoreApi.Features.Queries.Auth
 {
-    public class SignInQueryHandler : IRequestHandler<SignInQuery, (ulong accountId, string token)?>
+    public class CredentialsSignInQueryHandler : IRequestHandler<CredentialsSignInQuery, Account?>
     {
-        private readonly ITokenService _tokenService;
+        private readonly IRepository<Account> _accounts;
         private readonly ICredentialsRepository _credentials;
 
-        public SignInQueryHandler(ICredentialsRepository credentials, ITokenService tokenService)
+        public CredentialsSignInQueryHandler(ICredentialsRepository credentials, IRepository<Account> accounts)
         {
-            _tokenService = tokenService;
+            _accounts = accounts;
             _credentials = credentials;
         }
 
-        public async Task<(ulong accountId, string token)?> Handle(SignInQuery request, CancellationToken cancellationToken)
+        public async Task<Account?> Handle(CredentialsSignInQuery request, CancellationToken cancellationToken)
         {
             var credentials = await _credentials.GetByEmailAsync(request.Email);
             if (credentials is null)
@@ -40,12 +36,7 @@ namespace YssWebstoreApi.Features.Queries.Auth
                 return null;
             }
 
-            var accessToken = _tokenService.GetJwt([
-                new Claim("account_id", credentials.AccountId.ToString()!),
-                new Claim("is_verified", credentials.IsVerified.ToString())
-            ]);
-
-            return (credentials.AccountId!.Value, accessToken);
+            return await _accounts.GetAsync(credentials.AccountId!.Value);
         }
     }
 }

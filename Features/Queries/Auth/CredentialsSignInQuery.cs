@@ -1,17 +1,18 @@
 ﻿using MediatR;
 using System.Diagnostics.CodeAnalysis;
+using YssWebstoreApi.Models;
 
 namespace YssWebstoreApi.Features.Queries.Auth
 {
-    public class SignInQuery : IRequest<(ulong accountId, string token)?>
+    public class CredentialsSignInQuery : IRequest<Account?>
     {
         public required string Email { get; set; }
         public required string Password { get; set; }
 
-        public SignInQuery() { }
+        public CredentialsSignInQuery() { }
 
         [SetsRequiredMembers]
-        public SignInQuery(string email, string password)
+        public CredentialsSignInQuery(string email, string password)
         {
             Email = email;
             Password = password;
