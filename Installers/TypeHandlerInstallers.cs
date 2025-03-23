@@ -7,7 +7,7 @@ namespace YssWebstoreApi.Installers
     {
         public static void AddTagHandlers(this IApplicationBuilder builder)
         {
-            SqlMapper.AddTypeHandler(new TagListHandler());
+            SqlMapper.AddTypeHandler(new TagHandler());
         }
     }
 }

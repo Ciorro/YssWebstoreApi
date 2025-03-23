@@ -1,13 +1,13 @@
 ﻿using Dapper;
 using MediatR;
 using System.Data;
-using YssWebstoreApi.Models.DTOs.Accounts;
+using YssWebstoreApi.Models;
 using YssWebstoreApi.Models.DTOs.Product;
 using YssWebstoreApi.Models.Query;
 
 namespace YssWebstoreApi.Features.Queries.Products
 {
-    public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Page<PublicProduct>>
+    public class SearchProductsQueryHandler : IRequestHandler<SearchProductsQuery, Page<ShallowProduct>>
     {
         private readonly IDbConnection _cn;
 
@@ -16,7 +16,7 @@ namespace YssWebstoreApi.Features.Queries.Products
             _cn = dbConnection;
         }
 
-        public async Task<Page<PublicProduct>> Handle(SearchProductsQuery request, CancellationToken cancellationToken)
+        public async Task<Page<ShallowProduct>> Handle(SearchProductsQuery request, CancellationToken cancellationToken)
         {
             var searchParams = request.SearchParams;
             var sortOptions = request.SortOptions;
@@ -24,61 +24,57 @@ namespace YssWebstoreApi.Features.Queries.Products
 
             var builder = new SqlBuilder();
             var template = builder.AddTemplate(
-                $@"SELECT products.Id,
-		                  products.CreatedAt,
-		                  products.UpdatedAt,
-		                  products.AccountId,
-		                  products.Name,
-		                  products.Description,
-		                  products.SourceUrl,
-		                  products.Tags,
-		                  products.IsPinned,
-                          BIT_OR(packages.TargetOS) AS SupportedOS,
-                          AVG(reviews.Rate) AS Rating,
-                          images.Path AS Gallery,
-                          accounts.Id,
-                          accounts.CreatedAt,
-                          accounts.UpdatedAt,
-                          accounts.UniqueName,
-                          accounts.DisplayName,
-                          accounts.Status
-                   FROM products
-                   JOIN accounts ON products.AccountId = accounts.Id
-                   LEFT JOIN packages ON packages.ProductId = products.Id
-                   LEFT JOIN reviews ON reviews.ProductId = products.Id
-                   LEFT JOIN products_images ON products_images.ProductId = products.Id
-                   LEFT JOIN images ON images.Id = products_images.ImageId
-                   /**where**/
-                   GROUP BY products.Id, images.Id
-                   /**orderby**/");
+                $@"SELECT
+	                   products.Id,
+	                   products.CreatedAt,
+	                   products.UpdatedAt,
+	                   products.AccountId,
+	                   products.Name,
+	                   products.Description,
+	                   products.SourceUrl,
+	                   products.IsPinned,
+	                   AVG(reviews.Rate) AS Rating,
+                       tags.Tag AS Tags,
+	                   accounts.Id,
+	                   accounts.UniqueName,
+	                   accounts.DisplayName
+                   FROM
+	                   products
+	                   INNER JOIN accounts ON products.AccountId = accounts.Id
+	                   LEFT JOIN reviews ON reviews.ProductId = products.Id
+	                   LEFT JOIN products_tags ON products_tags.ProductId = products.Id
+	                   LEFT JOIN tags ON tags.Id = products_tags.TagId
+	                   /**where**/
+                   GROUP BY
+	                   products.Id,
+                       tags.Id
+	                   /**orderby**/");
 
             BuildSearchParams(searchParams, builder);
             BuildSortOptions(sortOptions, builder);
-            builder.OrderBy("products_images.Order ASC");
 
-            var results = new Dictionary<ulong, PublicProduct>();
+            var results = new Dictionary<ulong, ShallowProduct>();
 
-            await _cn.QueryAsync<PublicProduct, string, PublicAccount, PublicProduct>(template.RawSql, (product, imagePath, account) =>
+            await _cn.QueryAsync<ShallowProduct, Tag, ShallowProduct>(template.RawSql, (product, tag) =>
             {
                 if (!results.TryGetValue(product.Id, out var result))
                 {
+                    results.Add(product.Id, product);
                     result = product;
-                    results.Add(product.Id, result);
                 }
 
-                if (!string.IsNullOrEmpty(imagePath))
+                if (tag is not null)
                 {
-                    result.Images.Add(imagePath);
+                    result.Tags.Add(tag);
                 }
 
-                result.Account = account;
                 return result;
 
-            }, template.Parameters, splitOn: "Id, Gallery, Id");
+            }, template.Parameters, splitOn: "Id, Tags");
 
             int pageSize = pageOptions.PageSize ?? results.Count;
 
-            return new Page<PublicProduct>
+            return new Page<ShallowProduct>
             {
                 PageNumber = pageOptions.PageNumber,
                 PageSize = pageSize,

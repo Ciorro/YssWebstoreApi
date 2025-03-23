@@ -6,7 +6,7 @@ using YssWebstoreApi.Models.Query;
 
 namespace YssWebstoreApi.Features.Queries.Products
 {
-    public class SearchProductsQuery : IRequest<Page<PublicProduct>>
+    public class SearchProductsQuery : IRequest<Page<ShallowProduct>>
     {
         public required SearchProduct SearchParams { get; init; }
         public SortOptions SortOptions { get; init; } = new();

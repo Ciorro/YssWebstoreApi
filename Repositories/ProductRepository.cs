@@ -32,12 +32,11 @@ namespace YssWebstoreApi.Repositories
                 AccountId = entity.AccountId,
                 Name = entity.Name,
                 Description = entity.Description,
-                SourceUrl = entity.SourceUrl,
-                Tags = string.Join(' ', entity.Tags)
+                SourceUrl = entity.SourceUrl
             };
 
-            string sql = @"INSERT INTO products (AccountId,Name,Description,SourceUrl,Tags) 
-                           VALUES (@AccountId,@Name,@Description,@SourceUrl,@Tags);
+            string sql = @"INSERT INTO products (AccountId,Name,Description,SourceUrl) 
+                           VALUES (@AccountId,@Name,@Description,@SourceUrl);
                            SELECT Id FROM products WHERE Id = LAST_INSERT_ID();";
 
             return await _cn.QuerySingleOrDefaultAsync<ulong>(sql, parameters);
@@ -55,7 +54,6 @@ namespace YssWebstoreApi.Repositories
                                Name = @Name,
                                Description = @Description,
                                SourceUrl = @SourceUrl,
-                               Tags = @Tags,
                                IsPinned = @IsPinned
                            WHERE Id = @Id";
 
