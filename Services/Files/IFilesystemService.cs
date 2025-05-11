@@ -3,8 +3,8 @@
     public interface IFilesystemService
     {
         Task<bool> Exists(string path);
-        Stream OpenRead(string path);
-        Stream OpenWrite(string path);
-        Task Delete(string path);
+        Task<bool> Create(string path);
+        Task<bool> Delete(string path);
+        Task<Stream> Open(string path);
     }
 }

@@ -1,11 +1,15 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using YssWebstoreApi.Models.Interfaces;
 
 namespace YssWebstoreApi.Models
 {
-    public record Tag : IParsable<Tag>
+    public record Tag : IEntity, IParsable<Tag>
     {
-        public string Group { get; }
-        public string Value { get; }
+        public Guid Id { get; }
+        public string? Group { get; }
+        public string? Value { get; }
+
+        public Tag() { }
 
         public Tag(string group, string value)
         {

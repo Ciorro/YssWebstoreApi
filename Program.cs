@@ -2,14 +2,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MySql.Data.MySqlClient;
+using Npgsql;
 using System.Data;
 using System.Text;
-using YssWebstoreApi.Formatters;
+using YssWebstoreApi.Api.Formatters;
 using YssWebstoreApi.Helpers;
 using YssWebstoreApi.Installers;
-using YssWebstoreApi.Services.Files;
-using YssWebstoreApi.Services.Jwt;
+using YssWebstoreApi.Persistance;
+using YssWebstoreApi.Setup;
 
 namespace YssWebstoreApi
 {
@@ -18,6 +18,7 @@ namespace YssWebstoreApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var config = builder.Configuration;
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -42,15 +43,10 @@ namespace YssWebstoreApi
                 });
             });
 
-            builder.Services.AddScoped<IDbConnection>((services) =>
-            {
-                var configuration = services.GetRequiredService<IConfiguration>();
-                var connectionStr = configuration.GetConnectionString("DefaultConnection")!;
-                var connection = new MySqlConnection(connectionStr);
-
-                connection.Open();
-                return connection;
-            });
+            builder.Services.AddTransient<IDatabaseInitializer>(
+                _ => new DatabaseInitializer(config.GetConnectionString("DefaultConnection")!));
+            builder.Services.AddScoped<IDbConnection>(
+                _ => new NpgsqlConnection(config.GetConnectionString("DefaultConnection")!));
 
             builder.Services.AddCors();
             builder.Services.AddHttpClient();
@@ -59,6 +55,7 @@ namespace YssWebstoreApi
                 config.InputFormatters.Add(new PlainTextFormatter());
             });
             builder.Services.AddRepositories();
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -74,16 +71,9 @@ namespace YssWebstoreApi
                 });
             builder.Services.AddAuthorization();
 
-            builder.Services.AddMediatR(config =>
-            {
-                config.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            });
-
-            builder.Services.AddSingleton<ITokenService, TokenService>();
-            builder.Services.AddSingleton<IFilesystemService>(new PhysicalFileSystem(
-                PathHelper.GetAbsolutePathRelativeToAssembly("static")));
 
             var app = builder.Build();
+
 
             app.UseFileServer(new FileServerOptions
             {
@@ -108,7 +98,6 @@ namespace YssWebstoreApi
             app.UseVerification();
 
             app.MapControllers();
-            app.AddTagHandlers();
 
             if (app.Configuration.GetValue<bool>("Swagger:Enabled"))
             {
@@ -116,6 +105,7 @@ namespace YssWebstoreApi
                 app.UseSwaggerUI();
             }
 
+            app.InitDatabase();
             app.Run();
         }
     }

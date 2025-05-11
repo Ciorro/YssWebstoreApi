@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace YssWebstoreApi.Models.Api
+namespace YssWebstoreApi.Models.Query
 {
     public class PageOptions
     {

@@ -1,15 +1,15 @@
-﻿using YssWebstoreApi.Models.Abstractions;
+﻿using YssWebstoreApi.Models.Interfaces;
 
 namespace YssWebstoreApi.Models
 {
     public class Review : IEntity
     {
-        public ulong? Id { get; set; }
-        public DateTimeOffset? CreatedAt { get; set; }
-        public DateTimeOffset? UpdatedAt { get; set; }
-        public ulong? AccountId { get; set; }
-        public ulong? ProductId { get; set; }
-        public int? Rate { get; set; }
+        public Guid Id { get; }
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public Guid AccountId { get; set; }
+        public Guid ProjectId { get; set; }
+        public int Rate { get; set; }
         public string? Content { get; set; }
     }
 }

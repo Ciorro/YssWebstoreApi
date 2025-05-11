@@ -1,0 +1,25 @@
+CREATE TABLE Accounts
+(
+	Id UUID PRIMARY KEY,
+	CreatedAt TIMESTAMP NOT NULL,
+	UpdatedAt TIMESTAMP NOT NULL,
+	UniqueName VARCHAR(60) NOT NULL UNIQUE,
+	DisplayName VARCHAR(120) NOT NULL,
+	StatusText VARCHAR(80)
+);
+
+CREATE TABLE Credentials
+(
+	Id UUID PRIMARY KEY,
+	CreatedAt TIMESTAMP NOT NULL,
+	UpdatedAt TIMESTAMP NOT NULL,
+	AccountId UUID NOT NULL UNIQUE REFERENCES Accounts,
+	Email VARCHAR(255) NOT NULL UNIQUE,
+	PasswordHash VARCHAR(255) NOT NULL,
+	PasswordSalt VARCHAR(255) NOT NULL,
+	VerificationCode VARCHAR(6),
+	VerificationCodeExpiresAt TIMESTAMP,
+	PasswordResetCode VARCHAR(255),
+	PasswordResetCodeExpiresAt TIMESTAMP,
+	IsVerified BOOLEAN NOT NULL DEFAULT FALSE
+);

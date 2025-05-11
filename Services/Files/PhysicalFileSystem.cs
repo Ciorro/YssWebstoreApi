@@ -1,4 +1,6 @@
 ﻿
+
+
 namespace YssWebstoreApi.Services.Files
 {
     public class PhysicalFileSystem : IFilesystemService
@@ -12,43 +14,22 @@ namespace YssWebstoreApi.Services.Files
 
         public Task<bool> Exists(string path)
         {
-            path = GetFullPath(path);
-            return Task.FromResult(File.Exists(path));
+            throw new NotImplementedException();
         }
 
-        public Stream OpenRead(string path)
+        public Task<bool> Create(string path)
         {
-            path = GetFullPath(path);
-            return File.OpenRead(path);
+            throw new NotImplementedException();
         }
 
-        public Stream OpenWrite(string path)
+        public Task<bool> Delete(string path)
         {
-            path = GetFullPath(path);
-            EnsureDirectoryExists(path);
-            return File.OpenWrite(path);
+            throw new NotImplementedException();
         }
 
-        public Task Delete(string path)
+        public Task<Stream> Open(string path)
         {
-            File.Delete(GetFullPath(path));
-            return Task.CompletedTask;
-        }
-
-        private string GetFullPath(string path)
-        {
-            return Path.Combine(Root, path);
-        }
-
-        private void EnsureDirectoryExists(string path)
-        {
-            var fullPath = Path.Combine(Root, path);
-            var directory = Path.GetDirectoryName(fullPath);
-
-            if (!string.IsNullOrEmpty(directory))
-            {
-                Directory.CreateDirectory(directory);
-            }
+            throw new NotImplementedException();
         }
     }
 }

@@ -2,12 +2,12 @@
 
 namespace YssWebstoreApi.Models
 {
-    public class Image : IEntity, IAttachment
+    public class Session : IEntity
     {
-        public Guid Id { get; }
+        public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
-        public required string Title { get; set; }
-        public required string Path { get; set; }
+        public required string SessionToken { get; set; }
+        public string? DeviceInfo { get; set; }
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using YssWebstoreApi.Models.Api;
 
 namespace YssWebstoreApi.Models.Query
 {
@@ -7,7 +6,7 @@ namespace YssWebstoreApi.Models.Query
     {
         [FromQuery(Name = "")]
         public SortOptions SortOptions { get; set; } = new();
-        
+
         [FromQuery(Name = "")]
         public PageOptions PageOptions { get; set; } = new();
     }
