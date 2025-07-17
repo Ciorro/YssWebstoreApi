@@ -1,7 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using SkiaSharp;
-using YssWebstoreApi.Models;
-using YssWebstoreApi.Models.DTOs.Resources;
+using YssWebstoreApi.Api.DTO.Resources;
+using YssWebstoreApi.Entities;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Persistance.Storage;
 

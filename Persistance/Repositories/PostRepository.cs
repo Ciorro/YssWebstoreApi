@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using System.Data;
-using YssWebstoreApi.Models;
+using YssWebstoreApi.Entities;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories

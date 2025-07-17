@@ -1,5 +1,5 @@
 ﻿using LiteBus.Queries.Abstractions;
-using YssWebstoreApi.Models.DTOs.Posts;
+using YssWebstoreApi.Api.DTO.Posts;
 
 namespace YssWebstoreApi.Features.Posts.Queries
 {

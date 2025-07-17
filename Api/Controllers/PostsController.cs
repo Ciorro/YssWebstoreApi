@@ -2,11 +2,11 @@
 using LiteBus.Queries.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features;
 using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Posts.Queries;
-using YssWebstoreApi.Models.DTOs.Posts;
 
 namespace YssWebstoreApi.Api.Controllers
 {

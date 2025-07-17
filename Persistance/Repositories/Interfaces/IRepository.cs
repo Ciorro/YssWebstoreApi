@@ -1,4 +1,4 @@
-﻿using YssWebstoreApi.Models.Interfaces;
+﻿using YssWebstoreApi.Entities.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories.Interfaces
 {

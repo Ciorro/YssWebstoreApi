@@ -1,5 +1,5 @@
-﻿using YssWebstoreApi.Models;
-using YssWebstoreApi.Models.DTOs.Auth;
+﻿using YssWebstoreApi.Api.DTO.Auth;
+using YssWebstoreApi.Entities;
 
 namespace YssWebstoreApi.Services
 {

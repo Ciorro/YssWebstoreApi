@@ -1,7 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using LiteBus.Messaging.Abstractions;
 using System.Diagnostics.CodeAnalysis;
-using YssWebstoreApi.Models;
+using YssWebstoreApi.Entities;
 
 namespace YssWebstoreApi.Features.Auth.Common
 {

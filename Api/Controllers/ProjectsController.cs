@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using YssWebstoreApi.Models.DTOs.Projects;
-using YssWebstoreApi.Services;
 
 namespace YssWebstoreApi.Api.Controllers
 {
@@ -8,6 +6,6 @@ namespace YssWebstoreApi.Api.Controllers
     [ApiController]
     public class ProjectsController : ControllerBase
     {
-        
+
     }
 }

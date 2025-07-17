@@ -2,8 +2,8 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using YssWebstoreApi.Models;
-using YssWebstoreApi.Models.DTOs.Auth;
+using YssWebstoreApi.Api.DTO.Auth;
+using YssWebstoreApi.Entities;
 using YssWebstoreApi.Security;
 
 namespace YssWebstoreApi.Services

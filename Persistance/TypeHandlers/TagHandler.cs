@@ -1,6 +1,6 @@
 ﻿using Dapper;
 using System.Data;
-using YssWebstoreApi.Models.Tags;
+using YssWebstoreApi.Entities.Tags;
 
 namespace YssWebstoreApi.Persistance.TypeHandlers
 {

@@ -1,9 +1,9 @@
 ﻿using Dapper;
 using LiteBus.Queries.Abstractions;
 using System.Data;
-using YssWebstoreApi.Models.DTOs.Accounts;
-using YssWebstoreApi.Models.DTOs.Posts;
-using YssWebstoreApi.Models.DTOs.Projects;
+using YssWebstoreApi.Api.DTO.Accounts;
+using YssWebstoreApi.Api.DTO.Posts;
+using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Persistance.Storage;
 
 namespace YssWebstoreApi.Features.Posts.Queries

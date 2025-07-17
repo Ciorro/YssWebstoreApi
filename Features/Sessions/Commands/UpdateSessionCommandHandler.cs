@@ -1,5 +1,5 @@
 ﻿using LiteBus.Commands.Abstractions;
-using YssWebstoreApi.Models.DTOs.Auth;
+using YssWebstoreApi.Api.DTO.Auth;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Services;
 

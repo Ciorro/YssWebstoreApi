@@ -1,5 +1,5 @@
 ﻿using LiteBus.Queries.Abstractions;
-using YssWebstoreApi.Models.DTOs.Accounts;
+using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Features.Accounts.Queries
