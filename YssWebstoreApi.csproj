@@ -9,20 +9,42 @@
   <ItemGroup>
     <None Remove="Persistance\Migrations\Script0001.sql" />
     <None Remove="Persistance\Migrations\Script0002.sql" />
+    <None Remove="Persistance\Migrations\Script0003.sql" />
+    <None Remove="Persistance\Migrations\Script0004.sql" />
+    <None Remove="Persistance\Migrations\Script0005.sql" />
+    <None Remove="Persistance\Migrations\Script0006.sql" />
+    <None Remove="Persistance\Migrations\Script0007.sql" />
+    <None Remove="Persistance\Migrations\Script0008.sql" />
+    <None Remove="Persistance\Migrations\Script0009.sql" />
+    <None Remove="Persistance\Migrations\Script0010.sql" />
+    <None Remove="Persistance\Migrations\Script0011.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Persistance\Migrations\Script0001.sql" />
     <EmbeddedResource Include="Persistance\Migrations\Script0002.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0003.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0004.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0005.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0006.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0007.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0008.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0009.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0010.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0011.sql" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Dapper.SqlBuilder" Version="2.1.66" />
     <PackageReference Include="dbup-postgresql" Version="6.0.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+    <PackageReference Include="LiteBus" Version="2.2.1" />
+    <PackageReference Include="LiteBus.Extensions.MicrosoftDependencyInjection" Version="2.2.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
     <PackageReference Include="Npgsql" Version="9.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
+    <PackageReference Include="SkiaSharp" Version="3.119.0" />
+    <PackageReference Include="Supabase" Version="1.1.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
   </ItemGroup>
 
@@ -30,6 +52,10 @@
     <None Update="Static\empty.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Features\Projects\" />
   </ItemGroup>
 
 </Project>

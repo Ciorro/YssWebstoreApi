@@ -1,6 +1,6 @@
 ﻿using YssWebstoreApi.Api.Middlewares;
 
-namespace YssWebstoreApi.Installers
+namespace YssWebstoreApi.Setup
 {
     public static class MiddlewareSetup
     {

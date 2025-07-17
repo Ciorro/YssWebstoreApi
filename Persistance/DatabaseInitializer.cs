@@ -1,5 +1,4 @@
 ﻿using DbUp;
-using DbUp.Engine;
 using System.Reflection;
 
 namespace YssWebstoreApi.Persistance
@@ -22,7 +21,7 @@ namespace YssWebstoreApi.Persistance
 
             if (upgrader.IsUpgradeRequired())
             {
-                upgrader.PerformUpgrade();                
+                upgrader.PerformUpgrade();
             }
         }
     }

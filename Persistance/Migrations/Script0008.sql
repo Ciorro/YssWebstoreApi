@@ -1,0 +1,7 @@
+CREATE TABLE UserFollows
+(
+	Id UUID PRIMARY KEY,
+	CreatedAt TIMESTAMP NOT NULL,
+	FollowerId UUID NOT NULL REFERENCES Accounts,
+	FollowedId UUID NOT NULL REFERENCES Accounts
+);

@@ -5,7 +5,7 @@ using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories
 {
-    public class AccountRepository : IRepository<Account>
+    public class AccountRepository : IAccountRepository
     {
         private readonly IDbConnection _db;
 
@@ -286,6 +286,112 @@ namespace YssWebstoreApi.Persistance.Repositories
                 new { Id = id }, transaction);
 
             transaction.Commit();
+        }
+
+        public async Task<Account?> GetByEmailAsync(string email)
+        {
+            Account? result = null;
+
+            await _db.QueryAsync<Account, Credentials, Session, Account>(
+                """
+                SELECT
+                	Accounts.Id,
+                	Accounts.CreatedAt,
+                	Accounts.UpdatedAt,
+                	Accounts.UniqueName,
+                	Accounts.DisplayName,
+                	Accounts.StatusText,
+                	Credentials.Id,
+                	Credentials.CreatedAt,
+                	Credentials.UpdatedAt,
+                	Credentials.Email,
+                	Credentials.PasswordHash,
+                	Credentials.PasswordSalt,
+                	Credentials.VerificationCode,
+                	Credentials.VerificationCodeExpiresAt,
+                	Credentials.PasswordResetCode,
+                	Credentials.PasswordResetCodeExpiresAt,
+                	Credentials.IsVerified,
+                	Sessions.Id,
+                	Sessions.CreatedAt,
+                	Sessions.UpdatedAt,
+                	Sessions.SessionToken,
+                	Sessions.DeviceInfo
+                FROM
+                	Accounts
+                	INNER JOIN Credentials ON Credentials.AccountId = Accounts.Id
+                	LEFT JOIN Sessions ON Sessions.AccountId = Accounts.Id
+                WHERE
+                	Credentials.Email = @Email
+                """,
+                (account, credentials, session) =>
+                {
+                    result ??= account;
+                    result.Credentials = credentials;
+
+                    if (session is not null)
+                    {
+                        result.Sessions.Add(session);
+                    }
+
+                    return result;
+                },
+                new { Email = email });
+
+            return result;
+        }
+
+        public async Task<Account?> GetByUniqueNameAsync(string uniqueName)
+        {
+            Account? result = null;
+
+            await _db.QueryAsync<Account, Credentials, Session, Account>(
+                """
+                SELECT
+                	Accounts.Id,
+                	Accounts.CreatedAt,
+                	Accounts.UpdatedAt,
+                	Accounts.UniqueName,
+                	Accounts.DisplayName,
+                	Accounts.StatusText,
+                	Credentials.Id,
+                	Credentials.CreatedAt,
+                	Credentials.UpdatedAt,
+                	Credentials.Email,
+                	Credentials.PasswordHash,
+                	Credentials.PasswordSalt,
+                	Credentials.VerificationCode,
+                	Credentials.VerificationCodeExpiresAt,
+                	Credentials.PasswordResetCode,
+                	Credentials.PasswordResetCodeExpiresAt,
+                	Credentials.IsVerified,
+                	Sessions.Id,
+                	Sessions.CreatedAt,
+                	Sessions.UpdatedAt,
+                	Sessions.SessionToken,
+                	Sessions.DeviceInfo
+                FROM
+                	Accounts
+                	INNER JOIN Credentials ON Credentials.AccountId = Accounts.Id
+                	LEFT JOIN Sessions ON Sessions.AccountId = Accounts.Id
+                WHERE
+                	Accounts.UniqueName = @UniqueName
+                """,
+                (account, credentials, session) =>
+                {
+                    result ??= account;
+                    result.Credentials = credentials;
+
+                    if (session is not null)
+                    {
+                        result.Sessions.Add(session);
+                    }
+
+                    return result;
+                },
+                new { UniqueName = uniqueName });
+
+            return result;
         }
     }
 }

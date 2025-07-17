@@ -2,7 +2,7 @@
 using YssWebstoreApi.Persistance;
 using YssWebstoreApi.Persistance.TypeHandlers;
 
-namespace YssWebstoreApi.Installers
+namespace YssWebstoreApi.Setup
 {
     public static class DatabaseSetup
     {

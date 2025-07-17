@@ -1,0 +1,1 @@
+ALTER TABLE Credentials ALTER COLUMN VerificationCode TYPE VARCHAR(32);

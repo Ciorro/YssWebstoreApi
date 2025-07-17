@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.Features;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.Middlewares.Attributes;
 
@@ -15,14 +15,16 @@ namespace YssWebstoreApi.Api.Middlewares
 
         public async Task Invoke(HttpContext httpContext)
         {
-            if (httpContext.User.Identity?.IsAuthenticated == true)
+            var endpoint = httpContext.GetEndpoint();
+            var isAuthorized = endpoint?.Metadata.GetMetadata<AuthorizeAttribute>() is not null;
+
+            if (isAuthorized)
             {
-                var endpoint = httpContext.Features.Get<IEndpointFeature>()?.Endpoint;
                 var attribute = endpoint?.Metadata.GetMetadata<AllowUnverifiedAttribute>();
 
                 bool isVerified = httpContext.User.Claims.Any(x =>
                 {
-                    return x.Type == "is_verified" && x.Value.ToLower() == "true";
+                    return x.Type == "isVerified" && x.Value.ToLower() == "true";
                 });
 
                 if (!isVerified && attribute is null)

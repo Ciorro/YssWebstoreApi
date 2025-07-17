@@ -1,7 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using YssWebstoreApi.Models;
-using YssWebstoreApi.Persistance.Repositories.Interfaces;
-using YssWebstoreApi.Security;
+﻿using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Api.Middlewares.Attributes;
+using YssWebstoreApi.Extensions;
+using YssWebstoreApi.Features;
+using YssWebstoreApi.Features.Accounts.Commands;
+using YssWebstoreApi.Features.Accounts.Queries;
+using YssWebstoreApi.Models.DTOs.Accounts;
 
 namespace YssWebstoreApi.Api.Controllers
 {
@@ -9,76 +15,76 @@ namespace YssWebstoreApi.Api.Controllers
     [ApiController]
     public class AccountsController : ControllerBase
     {
-        [HttpGet]
-        public async Task<IActionResult> Test([FromServices] IRepository<Account> accounts)
+        private readonly IQueryMediator _queryMediator;
+        private readonly ICommandMediator _commandMediator;
+
+        public AccountsController(IQueryMediator queryMediator, ICommandMediator commandMediator)
         {
-            var acc = new Account()
+            _queryMediator = queryMediator;
+            _commandMediator = commandMediator;
+        }
+
+        [HttpGet("{uniqueName}")]
+        public async Task<IActionResult> GetPublicAccountByUniqueName(string uniqueName)
+        {
+            Result<AccountResponse> result = await _queryMediator.QueryAsync(
+                new GetAccountByNameQuery(uniqueName));
+
+            if (result.TryGetValue(out var value))
             {
-                Id = Guid.CreateVersion7(),
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                UniqueName = "tst",
-                DisplayName = "Test",
-                StatusText = "Zażółć gęślą jaźń",
-                Credentials = new Credentials
+                return Ok(value);
+            }
+
+            return NotFound();
+        }
+
+        [HttpGet("me"), Authorize, AllowUnverified]
+        public async Task<IActionResult> GetDetailedAccount()
+        {
+            if (User.TryGetUserId(out var id))
+            {
+                Result<AccountResponse> result = await _queryMediator.QueryAsync(
+                    new GetAccountByIdQuery(id));
+
+                if (result.TryGetValue(out var value))
                 {
-                    Id = Guid.CreateVersion7(),
-                    CreatedAt = DateTime.Now,
-                    UpdatedAt = DateTime.Now,
-                    Email = "test@gmail.com",
-                    PasswordHash = "ddd",
-                    PasswordSalt = "aaa"
-                },
-                Sessions = [
-                    new Session {
-                        Id = Guid.CreateVersion7(),
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now,
-                        SessionToken = SecurityUtils.GetRandomString(255),
-                    },
-                    new Session {
-                        Id = Guid.CreateVersion7(),
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now,
-                        SessionToken = SecurityUtils.GetRandomString(255),
-                    }
-                ]
-            };
+                    return Ok(value);
+                }
 
-            await accounts.InsertAsync(acc);
-            return Ok();
+                return NotFound();
+            }
+
+            return BadRequest();
         }
 
-        [HttpGet("{id:guid}")]
-        public async Task<IActionResult> Test2([FromServices] IRepository<Account> accounts, [FromRoute] Guid id)
+        [HttpPost("verify"), Authorize, AllowUnverified]
+        public async Task<IActionResult> Verify([FromBody] string verificationCode)
         {
-            var account = await accounts.GetAsync(id);
-            
-            account!.Sessions.Add(new Session
+            if (!User.TryGetUserId(out var accountId))
             {
-                Id = Guid.CreateVersion7(),
-                CreatedAt = DateTime.Now,
-                UpdatedAt = DateTime.Now,
-                SessionToken = SecurityUtils.GetRandomString(255),
-                DeviceInfo = "Windows"
-            });
+                return BadRequest();
+            }
 
-            account.Sessions.First().UpdatedAt = new DateTime(2026, 1, 2);
+            Result result = await _commandMediator.SendAsync(
+                new VerifyAccountCommand(accountId, verificationCode));
 
-            account.StatusText = "sus";
-
-            account.Credentials.VerificationCode = "12345";
-            
-            await accounts.UpdateAsync(account!);
-
-            return Ok(account);
+            return result.Success ?
+                Ok() : BadRequest();
         }
 
-        [HttpGet("{id:guid}/del")]
-        public async Task<IActionResult> Test22([FromServices] IRepository<Account> accounts, [FromRoute] Guid id)
+        [HttpPost("generate-verification-code"), Authorize, AllowUnverified]
+        public async Task<IActionResult> GenerateVerificationCode()
         {
-            await accounts.DeleteAsync(id);
-            return Ok();
+            if (!User.TryGetUserId(out var accountId))
+            {
+                return BadRequest();
+            }
+
+            Result result = await _commandMediator.SendAsync(
+                new CreateVerificationCodeCommand(accountId));
+
+            return result.Success ?
+                Ok() : BadRequest();
         }
     }
 }

@@ -4,14 +4,9 @@ namespace YssWebstoreApi.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static ulong GetUserId(this ClaimsPrincipal claimsPrincipal)
+        public static bool TryGetUserId(this ClaimsPrincipal claimsPrincipal, out Guid id)
         {
-            if (ulong.TryParse(claimsPrincipal.FindFirst("account_id")?.Value, out ulong accountId))
-            {
-                return accountId;
-            }
-
-            throw new UnauthorizedAccessException();
+            return Guid.TryParse(claimsPrincipal.FindFirst("accountId")?.Value, out id);
         }
     }
 }

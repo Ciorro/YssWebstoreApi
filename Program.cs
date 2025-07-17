@@ -1,3 +1,6 @@
+using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
+using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
+using LiteBus.Queries.Extensions.MicrosoftDependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
@@ -7,8 +10,8 @@ using System.Data;
 using System.Text;
 using YssWebstoreApi.Api.Formatters;
 using YssWebstoreApi.Helpers;
-using YssWebstoreApi.Installers;
 using YssWebstoreApi.Persistance;
+using YssWebstoreApi.Persistance.Storage;
 using YssWebstoreApi.Setup;
 
 namespace YssWebstoreApi
@@ -55,6 +58,8 @@ namespace YssWebstoreApi
                 config.InputFormatters.Add(new PlainTextFormatter());
             });
             builder.Services.AddRepositories();
+            builder.Services.AddServices();
+            builder.Services.AddSingleton<IFileStorage, SupabaseStorage>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -71,6 +76,18 @@ namespace YssWebstoreApi
                 });
             builder.Services.AddAuthorization();
 
+            builder.Services.AddLiteBus(x =>
+            {
+                x.AddCommandModule(builder =>
+                {
+                    builder.RegisterFromAssembly(typeof(Program).Assembly);
+                });
+
+                x.AddQueryModule(builder =>
+                {
+                    builder.RegisterFromAssembly(typeof(Program).Assembly);
+                });
+            });
 
             var app = builder.Build();
 
@@ -102,7 +119,10 @@ namespace YssWebstoreApi
             if (app.Configuration.GetValue<bool>("Swagger:Enabled"))
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.EnableTryItOutByDefault();
+                });
             }
 
             app.InitDatabase();
