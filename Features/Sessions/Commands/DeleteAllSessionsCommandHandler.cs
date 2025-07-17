@@ -1,26 +1,29 @@
 ﻿using LiteBus.Commands.Abstractions;
-using YssWebstoreApi.Services;
+using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Features.Sessions.Commands
 {
     public class DeleteAllSessionsCommandHandler
         : ICommandHandler<DeleteAllSessionsCommand, Result>
     {
-        private readonly ISessionServiceOld _sessionService;
+        private readonly IAccountRepository _accountRepository;
 
-        public DeleteAllSessionsCommandHandler(ISessionServiceOld sessionService)
+        public DeleteAllSessionsCommandHandler(IAccountRepository accountRepository)
         {
-            _sessionService = sessionService;
+            _accountRepository = accountRepository;
         }
 
         public async Task<Result> HandleAsync(DeleteAllSessionsCommand message, CancellationToken cancellationToken = default)
         {
-            if (await _sessionService.DeleteAllSessions(message.AccountId))
+            var account = await _accountRepository.GetAsync(message.AccountId);
+            if (account is null)
             {
-                return Result.Ok();
+                return CommonErrors.ResourceNotFound;
             }
 
-            return CommonErrors.ResourceNotFound;
+            account.Sessions.Clear();
+            await _accountRepository.UpdateAsync(account);
+            return Result.Ok();
         }
     }
 }
