@@ -25,6 +25,7 @@ namespace YssWebstoreApi.Features.Accounts.Queries
 
             return new AccountResponse
             {
+                Id = account.Id,
                 UniqueName = account.UniqueName,
                 DisplayName = account.DisplayName,
                 StatusText = account.StatusText

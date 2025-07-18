@@ -8,7 +8,12 @@ namespace YssWebstoreApi.Api.DTO.Search
         [FromQuery(Name = "Page"), Range(1, int.MaxValue)]
         public int PageNumber { get; set; } = 1;
 
-        [Range(1, int.MaxValue)]
+        [FromQuery, Range(1, int.MaxValue)]
         public int PageSize { get; set; } = 10;
+
+        public int GetOffset()
+        {
+            return (PageNumber - 1) * PageSize;
+        }
     }
 }

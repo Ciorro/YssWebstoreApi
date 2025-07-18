@@ -6,6 +6,18 @@ namespace YssWebstoreApi.Entities.Tags
     {
         private readonly HashSet<Tag> _tags = new HashSet<Tag>();
 
+        public TagCollection() 
+        { }
+
+        public TagCollection(IEnumerable<Tag> tags)
+        {
+            _tags = new HashSet<Tag>(tags);
+        }
+
+        public TagCollection(IEnumerable<string> tags)
+        {
+            _tags = new HashSet<Tag>(tags.Select(Tag.Parse));
+        }
         public int Count
         {
             get => _tags.Count;

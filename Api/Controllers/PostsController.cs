@@ -3,10 +3,12 @@ using LiteBus.Queries.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Posts;
+using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features;
 using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Posts.Queries;
+using YssWebstoreApi.Features.Search.Queries;
 
 namespace YssWebstoreApi.Api.Controllers
 {
@@ -21,6 +23,27 @@ namespace YssWebstoreApi.Api.Controllers
         {
             _commandMediator = commandMediator;
             _queryMediator = queryMediator;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> SearchPosts(SearchPostRequest searchRequest)
+        {
+            Result<Page<PostResponse>> result = await _queryMediator.QueryAsync(
+                new SearchPostsQuery()
+                {
+                    SearchText = searchRequest.SearchQuery,
+                    AccountName = searchRequest.Account,
+                    TargetProjectId = searchRequest.Project,
+                    PageOptions = searchRequest.PageOptions,
+                    SortOptions = searchRequest.SortOptions
+                });
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
         }
 
         [HttpGet("{postId:Guid}")]

@@ -30,9 +30,11 @@ namespace YssWebstoreApi.Features.Posts.Queries
                     Posts.UpdatedAt,
                     Posts.Title,
                     Posts.Content,
+                    Accounts.Id,
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
+                    Projects.Id,
                     Projects.Name,
                     Projects.Slug,
                     Resources.Path
@@ -60,7 +62,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
                 {
                     message.PostId
                 },
-                splitOn: "Id,UniqueName,Name,Path");
+                splitOn: "Id,Path");
 
             return posts.Any() ?
                 posts.Single() : CommonErrors.ResourceNotFound;

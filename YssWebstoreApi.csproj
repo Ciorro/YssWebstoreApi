@@ -55,7 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\Projects\" />
+    <Folder Include="Features\Projects\Queries\" />
   </ItemGroup>
 
 </Project>
