@@ -39,7 +39,6 @@ namespace YssWebstoreApi.Features.Images.Commands
                 Id = id,
                 CreatedAt = creationTime,
                 UpdatedAt = creationTime,
-                AccountId = message.AccountId,
                 Path = $"img/{id}.jpg",
                 Size = encodedImage.Size
             };

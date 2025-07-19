@@ -43,14 +43,12 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Id,
                     CreatedAt,
                     UpdatedAt,
-                    AccountId,
                     Path,
                     Size
                 ) VALUES (
                     @{nameof(Resource.Id)},
                     @{nameof(Resource.CreatedAt)},
                     @{nameof(Resource.UpdatedAt)},
-                    @{nameof(Resource.AccountId)},
                     @{nameof(Resource.Path)},
                     @{nameof(Resource.Size)}
                 );
@@ -65,7 +63,6 @@ namespace YssWebstoreApi.Persistance.Repositories
                 SET Id = @{nameof(Resource.Id)},
                     CreatedAt = @{nameof(Resource.CreatedAt)},
                     UpdatedAt = @{nameof(Resource.UpdatedAt)},
-                    AccountId = @{nameof(Resource.AccountId)},
                     Path = @{nameof(Resource.Path)},
                     Size = @{nameof(Resource.Size)}
                 WHERE 

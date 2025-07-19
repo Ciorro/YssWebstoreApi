@@ -9,26 +9,29 @@ namespace YssWebstoreApi.Persistance.Repositories
     {
         private readonly IDbConnection _db;
 
-        public PostRepository(IDbConnection db)
+        public PostRepository(IDbConnection dbConnection)
         {
-            _db = db;
+            _db = dbConnection;
+            _db.Open();
         }
 
         public async Task<Post?> GetAsync(Guid id)
         {
-            Post? result = null;
-
-            await _db.QueryAsync<Post, Guid, Post>(
+            var posts = await _db.QueryAsync<Post, Resource, Post>(
                 """
                 SELECT
                     Posts.Id,
                     Posts.CreatedAt,
                     Posts.UpdatedAt,
                     Posts.AccountId,
-                    Posts.ProjectId,
                     Posts.Title,
                     Posts.Content,
-                    Images.Id
+                    Posts.TargetProjectId,
+                    Resources.Id,
+                    Resources.CreatedAt,
+                    Resources.UpdatedAt,
+                    Resources.Path,
+                    Resources.Size
                 FROM
                     Posts
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
@@ -38,20 +41,21 @@ namespace YssWebstoreApi.Persistance.Repositories
                 """,
                 (post, image) =>
                 {
-                    result ??= post;
-                    result.ImageResourceId = image;
-                    return result;
+                    post.Image = image;
+                    return post;
                 },
                 new
                 {
                     Id = id
                 });
 
-            return result;
+            return posts.SingleOrDefault();
         }
 
         public async Task InsertAsync(Post entity)
         {
+            using var transaction = _db.BeginTransaction();
+
             await _db.ExecuteAsync(
                 $"""
                 INSERT INTO Posts (
@@ -70,14 +74,84 @@ namespace YssWebstoreApi.Persistance.Repositories
                     @{nameof(Post.AccountId)},
                     @{nameof(Post.Title)},
                     @{nameof(Post.Content)},
-                    @{nameof(Post.ImageResourceId)},
+                    @ImageResourceId,
                     @{nameof(Post.TargetProjectId)}
                 )
-                """, entity);
+                """,
+                new
+                {
+                    entity.Id,
+                    entity.CreatedAt,
+                    entity.UpdatedAt,
+                    entity.AccountId,
+                    entity.Title,
+                    entity.Content,
+                    entity.TargetProjectId,
+                    ImageResourceId = entity.Image?.Id,
+                }, transaction);
+
+            if (entity.Image is not null)
+            {
+                await _db.ExecuteAsync(
+                    $"""
+                    INSERT INTO Resources (
+                        Id,
+                        CreatedAt,
+                        UpdatedAt,
+                        Path,
+                        Size
+                    ) VALUES (
+                       @{nameof(Resource.Id)}, 
+                       @{nameof(Resource.CreatedAt)},   
+                       @{nameof(Resource.UpdatedAt)}, 
+                       @{nameof(Resource.Path)}, 
+                       @{nameof(Resource.Size)}                     
+                    )
+                    """);
+            }
+
+            transaction.Commit();
         }
 
         public async Task UpdateAsync(Post entity)
         {
+            using var transaction = _db.BeginTransaction();
+
+            if (entity.Image is null)
+            {
+                await _db.ExecuteAsync(
+                    """
+                        DELETE FROM Resources USING Posts
+                        WHERE Posts.Id = @Id
+                          AND Resources.Id = Posts.ImageResourceId
+                    """,
+                    new { entity.Id });
+            }
+            else
+            {
+                await _db.ExecuteAsync(
+                    $"""
+                    INSERT INTO Resources (
+                        Id,
+                        CreatedAt,
+                        UpdatedAt,
+                        Path,
+                        Size
+                    ) VALUES (
+                       @{nameof(Resource.Id)}, 
+                       @{nameof(Resource.CreatedAt)},   
+                       @{nameof(Resource.UpdatedAt)}, 
+                       @{nameof(Resource.Path)}, 
+                       @{nameof(Resource.Size)}                     
+                    ) ON CONFLICT (Id) DO UPDATE
+                    SET Id = ${nameof(Resource.Id)},
+                        CreatedAt = ${nameof(Resource.CreatedAt)},
+                        UpdatedAt = ${nameof(Resource.UpdatedAt)},
+                        Path = ${nameof(Resource.Path)},
+                        Size = ${nameof(Resource.Size)}
+                    """, entity.Image);
+            }
+
             await _db.ExecuteAsync(
                 $"""
                 UPDATE Posts
@@ -87,15 +161,25 @@ namespace YssWebstoreApi.Persistance.Repositories
                     AccountId = @{nameof(Post.AccountId)},
                     Title = @{nameof(Post.Title)},
                     Content = @{nameof(Post.Content)},
-                    ImageResourceId = @{nameof(Post.ImageResourceId)},
+                    ImageResourceId = @ImageResourceId,
                     TargetProjectId = @{nameof(Post.TargetProjectId)}
                 WHERE
                     Id = @{nameof(Post.Id)}
                 """, entity);
+
+            transaction.Commit();
         }
 
         public async Task DeleteAsync(Guid id)
         {
+            await _db.ExecuteAsync(
+                """
+                    DELETE FROM Resources USING Posts
+                    WHERE Posts.Id = @Id
+                        AND Resources.Id = Posts.ImageResourceId
+                """,
+                new { Id = id });
+
             await _db.ExecuteAsync(
                 """
                 DELETE FROM Posts WHERE Id = @Id

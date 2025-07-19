@@ -28,8 +28,7 @@ namespace YssWebstoreApi.Features.Posts.Commands
                 AccountId = message.AccountId,
                 Title = message.Title,
                 Content = message.Content,
-                TargetProjectId = message.TargetProjectId,
-                ImageResourceId = message.ImageResourceId
+                TargetProjectId = message.TargetProjectId
             };
 
             await _postRepository.InsertAsync(post);
