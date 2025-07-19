@@ -32,7 +32,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                 FROM
                     Posts
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
-                    LEFT JOIN Images ON Images.Id = Posts.ImageId
+                    LEFT JOIN Resources ON Resources.Id = Posts.ImageResourceId
                 WHERE
                     Posts.Id = @Id
                 """,
@@ -61,8 +61,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     AccountId,
                     Title,
                     Content,
-                    ImageId,
-                    ProjectId
+                    ImageResourceId,
+                    TargetProjectId
                 ) VALUES (
                     @{nameof(Post.Id)},
                     @{nameof(Post.CreatedAt)},
@@ -87,8 +87,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     AccountId = @{nameof(Post.AccountId)},
                     Title = @{nameof(Post.Title)},
                     Content = @{nameof(Post.Content)},
-                    ImageId = @{nameof(Post.ImageResourceId)},
-                    ProjectId = @{nameof(Post.TargetProjectId)}
+                    ImageResourceId = @{nameof(Post.ImageResourceId)},
+                    TargetProjectId = @{nameof(Post.TargetProjectId)}
                 WHERE
                     Id = @{nameof(Post.Id)}
                 """, entity);
@@ -98,7 +98,7 @@ namespace YssWebstoreApi.Persistance.Repositories
         {
             await _db.ExecuteAsync(
                 """
-                DELETE FROM Resources WHERE Id = @Id
+                DELETE FROM Posts WHERE Id = @Id
                 """,
                 new { Id = id });
         }

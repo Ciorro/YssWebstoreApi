@@ -55,8 +55,8 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Posts
                     INNER JOIN Ids ON Ids.Id = Posts.Id
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
-                    LEFT JOIN Projects ON Projects.Id = Posts.ProjectId
-                    LEFT JOIN Resources ON Resources.Id = Posts.ImageId
+                    LEFT JOIN Projects ON Projects.Id = Posts.TargetProjectId
+                    LEFT JOIN Resources ON Resources.Id = Posts.ImageResourceId
                 ORDER BY
                     Ids.Order
                 """,

@@ -32,7 +32,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 builder.Where("Accounts.UniqueName = @AccountName", new { AccountName });
 
             if (TargetProjectId.HasValue)
-                builder.Where("Posts.ProjectId = @TargetProjectId", new { TargetProjectId });
+                builder.Where("Posts.TargetProjectId = @TargetProjectId", new { TargetProjectId });
 
             switch (SortOptions.OrderBy?.ToLower())
             {
