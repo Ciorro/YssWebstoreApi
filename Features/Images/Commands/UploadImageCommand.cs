@@ -1,5 +1,6 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Api.DTO.Resources;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Images.Commands
 {

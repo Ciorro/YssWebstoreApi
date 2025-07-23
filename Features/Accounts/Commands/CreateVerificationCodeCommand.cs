@@ -1,4 +1,5 @@
 ﻿using LiteBus.Commands.Abstractions;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Commands
 {

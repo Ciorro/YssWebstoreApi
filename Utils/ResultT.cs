@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace YssWebstoreApi.Features
+namespace YssWebstoreApi.Utils
 {
     public class Result<T> : Result
     {

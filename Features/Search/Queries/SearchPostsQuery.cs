@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Search;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
 {

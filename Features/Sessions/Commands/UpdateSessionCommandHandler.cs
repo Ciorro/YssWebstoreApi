@@ -2,6 +2,7 @@
 using YssWebstoreApi.Api.DTO.Auth;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Services;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Sessions.Commands
 {

@@ -1,4 +1,4 @@
-﻿namespace YssWebstoreApi.Features
+﻿namespace YssWebstoreApi.Utils
 {
     public class Result
     {

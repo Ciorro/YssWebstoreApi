@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Resources;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features;
 using YssWebstoreApi.Features.Images.Commands;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Api.Controllers
 {

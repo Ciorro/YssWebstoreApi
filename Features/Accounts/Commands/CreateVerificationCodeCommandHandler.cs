@@ -1,6 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Security;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Commands
 {

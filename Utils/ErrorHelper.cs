@@ -1,7 +1,7 @@
 ﻿using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace YssWebstoreApi.Helpers
+namespace YssWebstoreApi.Utils
 {
     public static class ErrorHelper
     {

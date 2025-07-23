@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Auth;
 using YssWebstoreApi.Api.Middlewares.Attributes;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features;
 using YssWebstoreApi.Features.Accounts.Commands;
 using YssWebstoreApi.Features.Sessions.Commands;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Api.Controllers
 {

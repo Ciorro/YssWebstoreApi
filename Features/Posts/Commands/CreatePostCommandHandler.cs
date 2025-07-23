@@ -1,6 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Entities;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Commands
 {

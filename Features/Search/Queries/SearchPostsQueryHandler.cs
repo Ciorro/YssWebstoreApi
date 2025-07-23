@@ -6,6 +6,7 @@ using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Persistance.Storage;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
 {

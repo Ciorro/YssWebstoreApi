@@ -1,4 +1,4 @@
-﻿namespace YssWebstoreApi.Features
+﻿namespace YssWebstoreApi.Utils
 {
     public record Error(string code, string message)
     {

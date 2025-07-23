@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features;
 using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Posts.Queries;
 using YssWebstoreApi.Features.Search.Queries;
+using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Api.Controllers
 {
