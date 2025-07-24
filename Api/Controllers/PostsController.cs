@@ -77,11 +77,25 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest(result.Error);
         }
 
-        [HttpPost("{postId:Guid}/image")]
+        [HttpPost("{postId:Guid}/image"), Authorize]
         public async Task<IActionResult> AttachImage(Guid postId, IFormFile file)
         {
             Result result = await _commandMediator.SendAsync(
                 new AttachImageToPostCommand(User.GetAccountId(), postId, file));
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{postId:Guid}/image"), Authorize]
+        public async Task<IActionResult> DetachImage(Guid postId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new RemoveImageFromPostCommand(User.GetAccountId(), postId));
 
             if (result.Success)
             {
