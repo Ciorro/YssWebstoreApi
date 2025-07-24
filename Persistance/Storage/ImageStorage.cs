@@ -16,19 +16,19 @@ namespace YssWebstoreApi.Persistance.Storage
 
         public async Task Upload(string path, IFormFile file, ImageProperties imageProperties)
         {
-            using var sourceBitmap = SKBitmap.Decode(file.OpenReadStream());
+            using var sourceBitmap = SKImage.FromEncodedData(file.OpenReadStream());
             using var processedBitmap = ResizeImage(
                 sourceBitmap,
                 imageProperties.Width,
                 imageProperties.Height);
 
             SKEncodedImageFormat format = GetFormatFromString(imageProperties.Format);
-            SKData processedImageData = processedBitmap.Encode(format, 90);
+            SKData processedImageData = processedBitmap.Encode(format, 100);
 
             await _storage.Upload(path, processedImageData.ToArray());
         }
 
-        private SKBitmap ResizeImage(SKBitmap image, int width, int height)
+        private SKBitmap ResizeImage(SKImage image, int width, int height)
         {
             float scale = 1f;
             float srcAspectRatio = (float)image.Width / image.Height;
@@ -52,7 +52,10 @@ namespace YssWebstoreApi.Persistance.Storage
             var result = new SKBitmap(width, height);
             using (var canvas = new SKCanvas(result))
             {
-                canvas.DrawBitmap(image, new SKRect(x, y, x + scaledWidth, y + scaledHeight));
+                canvas.DrawImage(
+                    image,
+                    new SKRect(x, y, x + scaledWidth, y + scaledHeight),
+                    new SKSamplingOptions(SKCubicResampler.CatmullRom));
             }
             return result;
         }
