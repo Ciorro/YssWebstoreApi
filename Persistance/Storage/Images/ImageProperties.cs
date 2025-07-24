@@ -18,6 +18,6 @@
         }
 
         public static readonly ImageProperties PostImage
-            = new ImageProperties(800, 400, "jpg");
+            = new ImageProperties(1000, 500, "jpg");
     }
 }
