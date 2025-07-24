@@ -23,7 +23,7 @@ namespace YssWebstoreApi.Persistance.Storage
 
                 await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
                     .From(_supabaseBucket)
-                    .Upload(reader.ToArray(), path, options: new Supabase.Storage.FileOptions()
+                    .Upload(reader.ToArray(), path.Replace('\\', '/'), options: new Supabase.Storage.FileOptions()
                     {
                         Upsert = true
                     });
@@ -34,7 +34,7 @@ namespace YssWebstoreApi.Persistance.Storage
         {
             await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
                 .From(_supabaseBucket)
-                .Remove(path);
+                .Remove(path.Replace('\\', '/'));
         }
     }
 }
