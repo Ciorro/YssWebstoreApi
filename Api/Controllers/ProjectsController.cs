@@ -1,8 +1,12 @@
-﻿using LiteBus.Queries.Abstractions;
+﻿using LiteBus.Commands.Abstractions;
+using LiteBus.Queries.Abstractions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Entities.Tags;
+using YssWebstoreApi.Extensions;
+using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Projects.Queries;
 using YssWebstoreApi.Features.Search.Queries;
 using YssWebstoreApi.Utils;
@@ -14,10 +18,12 @@ namespace YssWebstoreApi.Api.Controllers
     public class ProjectsController : ControllerBase
     {
         private readonly IQueryMediator _queryMediator;
+        private readonly ICommandMediator _commandMediator;
 
-        public ProjectsController(IQueryMediator queryMediator)
+        public ProjectsController(IQueryMediator queryMediator, ICommandMediator commandMediator)
         {
             _queryMediator = queryMediator;
+            _commandMediator = commandMediator;
         }
 
         [HttpGet]
@@ -51,6 +57,34 @@ namespace YssWebstoreApi.Api.Controllers
             if (result.TryGetValue(out var value))
             {
                 return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost("{projectId:Guid}/pin"), Authorize]
+        public async Task<IActionResult> PinProject(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new SetProjectPinnedCommand(User.GetAccountId(), projectId, true));
+
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{projectId:Guid}/pin"), Authorize]
+        public async Task<IActionResult> UnpinProject(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new SetProjectPinnedCommand(User.GetAccountId(), projectId, false));
+
+            if (result.Success)
+            {
+                return NoContent();
             }
 
             return BadRequest();
