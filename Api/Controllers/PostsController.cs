@@ -66,7 +66,6 @@ namespace YssWebstoreApi.Api.Controllers
             Result<Guid> result = await _commandMediator.SendAsync(
                 new CreatePostCommand(User.GetAccountId(), createPost.Title, createPost.Content)
                 {
-                    ImageResourceId = createPost.ImageResourceId,
                     TargetProjectId = createPost.TargetProjectId
                 });
 
@@ -76,6 +75,20 @@ namespace YssWebstoreApi.Api.Controllers
             }
 
             return BadRequest(result.Error);
+        }
+
+        [HttpPost("{postId:Guid}/image")]
+        public async Task<IActionResult> AttachImage(Guid postId, IFormFile file)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new AttachImageToPostCommand(User.GetAccountId(), postId, file));
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
         }
     }
 }

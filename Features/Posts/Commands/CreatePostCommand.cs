@@ -8,7 +8,6 @@ namespace YssWebstoreApi.Features.Posts.Commands
         public Guid AccountId { get; }
         public string Title { get; }
         public string Content { get; }
-        public Guid? ImageResourceId { get; init; }
         public Guid? TargetProjectId { get; init; }
 
         public CreatePostCommand(Guid accountId, string title, string content)
