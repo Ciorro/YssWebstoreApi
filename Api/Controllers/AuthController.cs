@@ -64,17 +64,8 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("signout"), Authorize, AllowUnverified]
         public async Task<IActionResult> SignOutSession([FromBody] string sessionToken)
         {
-            if (User.TryGetUserId(out var accountId))
-            {
-                return Unauthorized();
-            }
-
             Result result = await _mediator.SendAsync(
-                new DeleteSessionCommand()
-                {
-                    AccountId = accountId,
-                    SessionToken = sessionToken
-                });
+                new DeleteSessionCommand(User.GetAccountId(), sessionToken));
 
             if (result.Success)
             {
@@ -87,13 +78,8 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("signout-all"), Authorize, AllowUnverified]
         public async Task<IActionResult> SignOutEverywhere()
         {
-            if (User.TryGetUserId(out var accountId))
-            {
-                return Unauthorized();
-            }
-
             Result result = await _mediator.SendAsync(
-                new DeleteAllSessionsCommand(accountId));
+                new DeleteAllSessionsCommand(User.GetAccountId()));
 
             if (result.Success)
             {
@@ -107,11 +93,7 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> Refresh(SignInSessionToken signInSessionToken)
         {
             Result<TokenCredentials> result = await _mediator.SendAsync(
-                new UpdateSessionCommand()
-                {
-                    AccountId = signInSessionToken.AccountId,
-                    SessionToken = signInSessionToken.SessionToken
-                });
+                new UpdateSessionCommand(signInSessionToken.AccountId, signInSessionToken.SessionToken));
 
             if (result.TryGetValue(out var value))
             {

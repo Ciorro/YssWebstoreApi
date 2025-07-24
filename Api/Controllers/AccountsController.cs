@@ -41,32 +41,22 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpGet("me"), Authorize, AllowUnverified]
         public async Task<IActionResult> GetDetailedAccount()
         {
-            if (User.TryGetUserId(out var id))
+            Result<AccountResponse> result = await _queryMediator.QueryAsync(
+                new GetAccountByIdQuery(User.GetAccountId()));
+
+            if (result.TryGetValue(out var value))
             {
-                Result<AccountResponse> result = await _queryMediator.QueryAsync(
-                    new GetAccountByIdQuery(id));
-
-                if (result.TryGetValue(out var value))
-                {
-                    return Ok(value);
-                }
-
-                return NotFound();
+                return Ok(value);
             }
 
-            return BadRequest();
+            return NotFound();
         }
 
         [HttpPost("verify"), Authorize, AllowUnverified]
         public async Task<IActionResult> Verify([FromBody] string verificationCode)
         {
-            if (!User.TryGetUserId(out var accountId))
-            {
-                return BadRequest();
-            }
-
             Result result = await _commandMediator.SendAsync(
-                new VerifyAccountCommand(accountId, verificationCode));
+                new VerifyAccountCommand(User.GetAccountId(), verificationCode));
 
             return result.Success ?
                 Ok() : BadRequest();
@@ -75,13 +65,8 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("generate-verification-code"), Authorize, AllowUnverified]
         public async Task<IActionResult> GenerateVerificationCode()
         {
-            if (!User.TryGetUserId(out var accountId))
-            {
-                return BadRequest();
-            }
-
             Result result = await _commandMediator.SendAsync(
-                new CreateVerificationCodeCommand(accountId));
+                new CreateVerificationCodeCommand(User.GetAccountId()));
 
             return result.Success ?
                 Ok() : BadRequest();

@@ -63,13 +63,8 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost, Authorize]
         public async Task<IActionResult> CreatePost(CreatePostRequest createPost)
         {
-            if (!User.TryGetUserId(out var accountId))
-            {
-                return Unauthorized();
-            }
-
             Result<Guid> result = await _commandMediator.SendAsync(
-                new CreatePostCommand(accountId, createPost.Title, createPost.Content)
+                new CreatePostCommand(User.GetAccountId(), createPost.Title, createPost.Content)
                 {
                     ImageResourceId = createPost.ImageResourceId,
                     TargetProjectId = createPost.TargetProjectId

@@ -4,9 +4,10 @@ namespace YssWebstoreApi.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static bool TryGetUserId(this ClaimsPrincipal claimsPrincipal, out Guid id)
+        public static Guid GetAccountId(this ClaimsPrincipal claimsPrincipal)
         {
-            return Guid.TryParse(claimsPrincipal.FindFirst("accountId")?.Value, out id);
+            return Guid.TryParse(claimsPrincipal.FindFirstValue("accountId"), out var accountId) ?
+                accountId : throw new UnauthorizedAccessException("Missing account id.");
         }
     }
 }
