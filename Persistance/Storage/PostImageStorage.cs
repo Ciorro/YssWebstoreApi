@@ -1,4 +1,5 @@
-﻿using YssWebstoreApi.Persistance.Storage.Images;
+﻿using YssWebstoreApi.Helpers;
+using YssWebstoreApi.Persistance.Storage.Images;
 using YssWebstoreApi.Persistance.Storage.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Storage
@@ -17,7 +18,11 @@ namespace YssWebstoreApi.Persistance.Storage
 
         public async Task<string> UploadCoverImage(Guid postId, IFormFile file)
         {
-            string path = Path.Combine(Directory, postId.ToString(), FileName);
+            string path = PathHelper.UnixCombine(
+                Directory, 
+                postId.ToString(), 
+                FileName);
+
             await _imageStorage.Upload(path, file, ImageProperties.PostImage);
             return path;
         }
