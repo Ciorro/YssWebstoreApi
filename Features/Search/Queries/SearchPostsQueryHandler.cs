@@ -5,6 +5,7 @@ using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -13,10 +14,12 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchPostsQuery, Result<Page<PostResponse>>>
     {
         private readonly IDbConnection _db;
+        private readonly IStorage _storage;
 
-        public SearchPostsQueryHandler(IDbConnection dbConnection)
+        public SearchPostsQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
             _db = dbConnection;
+            _storage = storage;
         }
 
         public async Task<Result<Page<PostResponse>>> HandleAsync(SearchPostsQuery message, CancellationToken cancellationToken = default)
@@ -62,7 +65,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 {
                     post.Account = account;
                     post.Project = project;
-                    post.CoverImageUrl = imgPath;
+                    post.CoverImageUrl = _storage.GetUrl(imgPath);
 
                     return post;
                 },

@@ -4,6 +4,7 @@ using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Projects;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Queries
@@ -12,10 +13,12 @@ namespace YssWebstoreApi.Features.Posts.Queries
         : IQueryHandler<GetPostByIdQuery, Result<PostResponse>>
     {
         private readonly IDbConnection _db;
+        private readonly IStorage _storage;
 
-        public GetPostByIdQueryHandler(IDbConnection dbConnection)
+        public GetPostByIdQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
             _db = dbConnection;
+            _storage = storage;
         }
 
         public async Task<Result<PostResponse>> HandleAsync(GetPostByIdQuery message, CancellationToken cancellationToken = default)
@@ -48,7 +51,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
                 {
                     post.Account = account;
                     post.Project = project;
-                    post.CoverImageUrl = imgPath;
+                    post.CoverImageUrl = _storage.GetUrl(imgPath);
 
                     return post;
                 },

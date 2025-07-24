@@ -15,6 +15,18 @@ namespace YssWebstoreApi.Persistance.Storage
             _supabaseBucket = configuration.GetValue<string>("Supabase:Bucket")!;
         }
 
+        public string? GetUrl(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            return Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
+                .From(_supabaseBucket)
+                .GetPublicUrl(path);
+        }
+
         public async Task Upload(string path, Stream stream)
         {
             using (var reader = new MemoryStream())
