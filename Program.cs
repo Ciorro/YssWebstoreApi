@@ -2,16 +2,13 @@ using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
 using LiteBus.Queries.Extensions.MicrosoftDependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Npgsql;
 using System.Data;
 using System.Text;
 using YssWebstoreApi.Api.Formatters;
-using YssWebstoreApi.Helpers;
 using YssWebstoreApi.Persistance;
-using YssWebstoreApi.Persistance.Storage;
 using YssWebstoreApi.Setup;
 
 namespace YssWebstoreApi
@@ -59,7 +56,6 @@ namespace YssWebstoreApi
             });
             builder.Services.AddRepositories();
             builder.Services.AddServices();
-            builder.Services.AddSingleton<IFileStorage, SupabaseStorage>();
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
@@ -90,15 +86,6 @@ namespace YssWebstoreApi
             });
 
             var app = builder.Build();
-
-
-            app.UseFileServer(new FileServerOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-                    PathHelper.GetAbsolutePathRelativeToAssembly("static")),
-                RequestPath = "/static",
-                EnableDirectoryBrowsing = app.Environment.IsDevelopment()
-            });
 
             //app.UseHttpsRedirection();
             app.UseCors(
