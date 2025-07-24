@@ -144,11 +144,11 @@ namespace YssWebstoreApi.Persistance.Repositories
                        @{nameof(Resource.Path)}, 
                        @{nameof(Resource.Size)}                     
                     ) ON CONFLICT (Id) DO UPDATE
-                    SET Id = ${nameof(Resource.Id)},
-                        CreatedAt = ${nameof(Resource.CreatedAt)},
-                        UpdatedAt = ${nameof(Resource.UpdatedAt)},
-                        Path = ${nameof(Resource.Path)},
-                        Size = ${nameof(Resource.Size)}
+                    SET Id = @{nameof(Resource.Id)},
+                        CreatedAt = @{nameof(Resource.CreatedAt)},
+                        UpdatedAt = @{nameof(Resource.UpdatedAt)},
+                        Path = @{nameof(Resource.Path)},
+                        Size = @{nameof(Resource.Size)}
                     """, entity.Image);
             }
 
@@ -165,7 +165,18 @@ namespace YssWebstoreApi.Persistance.Repositories
                     TargetProjectId = @{nameof(Post.TargetProjectId)}
                 WHERE
                     Id = @{nameof(Post.Id)}
-                """, entity);
+                """, 
+                new
+                {
+                    entity.Id,
+                    entity.CreatedAt,
+                    entity.UpdatedAt,
+                    entity.AccountId,
+                    entity.Title,
+                    entity.Content,
+                    entity.TargetProjectId,
+                    ImageResourceId = entity.Image?.Id
+                });
 
             transaction.Commit();
         }
