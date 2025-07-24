@@ -11,6 +11,7 @@ namespace YssWebstoreApi.Features.Posts.Commands
 
         public AttachImageToPostCommand(Guid accountId, Guid postId, IFormFile file)
         {
+            AccountId = accountId;
             PostId = postId;
             File = file;
         }
