@@ -1,135 +1,355 @@
 ﻿using Dapper;
 using System.Data;
 using YssWebstoreApi.Entities;
-using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories
 {
-    public class ProjectRepository : IProjectRepository
+    public class ProjectRepository : IRepository<Project>
     {
         private readonly IDbConnection _db;
 
-        public ProjectRepository(IDbConnection db)
+        public ProjectRepository(IDbConnection dbConnection)
         {
-            _db = db;
+            _db = dbConnection;
+            _db.Open();
         }
 
         public async Task<Project?> GetAsync(Guid id)
         {
-            Project? result = null;
-
-            await _db.QueryAsync<Project, Resource, Tag, Project>(
+            using var results = await _db.QueryMultipleAsync(
                 """
+                -- Select project
                 SELECT
-                	Projects.Id,
-                	Projects.CreatedAt,
-                	Projects.UpdatedAt,
+                    Projects.Id,
+                    Projects.CreatedAt,
+                    Projects.UpdatedAt,
                     Projects.ReleasedAt,
-                	Projects.AccountId,
-                	Projects.Name,
+                    Projects.AccountId,
+                    Projects.Name,
                     Projects.Slug,
-                	Projects.Description,
-                	Projects.IsPinned,
-                    Images.Id,
-                	Images.Path,
-                	Images.Title,
-                	Tags.Tag
-                FROM
-                	Projects
-                	LEFT JOIN ProjectImages ON ProjectImages.ProjectId = Projects.Id
-                	LEFT JOIN Images ON Images.Id = ProjectImages.ImageId
-                	LEFT JOIN ProjectTags ON ProjectTags.ProjectId = Projects.Id
-                	LEFT JOIN Tags ON Tags.Id = ProjectTags.TagId
+                    Projects.Description,
+                    Projects.IsPinned
+                FROM Projects WHERE Projects.Id = @Id;
+
+                -- Select project tags
+                SELECT
+                    Tags.Id,
+                    Tags.Tag
+                FROM 
+                    Tags JOIN ProjectTags ON ProjectTags.TagId = Tags.Id
                 WHERE 
+                    ProjectTags.ProjectId = @Id;
+
+                -- Select project images
+                SELECT 
+                    Resources.Id,
+                    Resources.CreatedAt,
+                    Resources.UpdatedAt,
+                    Resources.Path
+                FROM 
+                    Resources JOIN ProjectImages ON ProjectImages.Id = Resources.Id
+                WHERE
+                    ProjectImages.ProjectId = @Id
+                ORDER BY
+                    ProjectImages.ImageOrder ASC;
+
+                -- Select project packages
+                SELECT
+                    Resources.Id,
+                    Resources.CreatedAt,
+                    Resources.UpdatedAt,
+                    Resources.Path,
+                    Packages.Name,
+                    Packages.Version,
+                    Packages.TargetOS,
+                    Packages.Size
+                FROM 
+                    Packages JOIN Resources ON Resources.Id = Packages.Id
+                WHERE
+                    Packages.ProjectId = @Id;
+                """,
+                new
+                {
+                    Id = id
+                });
+
+            var project = await results.ReadSingleOrDefaultAsync<Project>();
+            if (project is null)
+                return null;
+
+            project.Tags = [.. await results.ReadAsync<TagEntity>()];
+            project.Images = [.. await results.ReadAsync<Resource>()];
+            project.Packages = [.. await results.ReadAsync<Package>()];
+
+            return project;
+        }
+
+        public async Task InsertAsync(Project entity)
+        {
+            using var transaction = _db.BeginTransaction();
+
+            await _db.ExecuteAsync(
+                $"""
+                INSERT INTO Projects (
+                    Id,
+                    CreatedAt,
+                    UpdatedAt,
+                    ReleasedAt,
+                    AccountId,
+                    Name,
+                    Slug,
+                    Description,
+                    IsPinned
+                ) VALUES (
+                    @{nameof(Project.Id)},
+                    @{nameof(Project.CreatedAt)},
+                    @{nameof(Project.UpdatedAt)},
+                    @{nameof(Project.ReleasedAt)},
+                    @{nameof(Project.AccountId)},
+                    @{nameof(Project.Name)},
+                    @{nameof(Project.Slug)},
+                    @{nameof(Project.Description)},
+                    @{nameof(Project.IsPinned)}
+                );
+                """, entity, transaction);
+
+            await InsertTags(entity, transaction);
+            await InsertImages(entity, transaction);
+            await InsertPackages(entity, transaction);
+
+            transaction.Commit();
+        }
+
+        public async Task UpdateAsync(Project entity)
+        {
+            using var transaction = _db.BeginTransaction();
+
+            await _db.ExecuteAsync(
+                $"""
+                UPDATE Projects
+                SET Id = @{nameof(Project.Id)},
+                    CreatedAt = @{nameof(Project.CreatedAt)},
+                    UpdatedAt = @{nameof(Project.UpdatedAt)},
+                    ReleasedAt = @{nameof(Project.ReleasedAt)},
+                    AccountId = @{nameof(Project.AccountId)},
+                    Name = @{nameof(Project.Name)},
+                    Slug = @{nameof(Project.Slug)},
+                    Description = @{nameof(Project.Description)},
+                    IsPinned = @{nameof(Project.IsPinned)}
+                WHERE
                     Projects.Id = @Id
-                ORDER BY
-                    ProjectImages.ImageOrder ASC
-                """,
-                (project, image, tag) =>
-                {
-                    result ??= project;
+                """, entity, transaction);
 
-                    if (tag is not null)
-                        result.Tags.Add(tag);
-                    if (image is not null && !result.Images.Contains(image))
-                        result.Images.Add(image);
+            await UpsertTags(entity, transaction);
+            await UpsertImages(entity, transaction);
+            await UpsertPackages(entity, transaction);
 
-                    return project;
-                },
-                new
-                {
-                    Id = id,
-                },
-                splitOn: "Id,Tag");
-
-            return result;
+            transaction.Commit();
         }
 
-        public Task InsertAsync(Project entity)
+        public async Task DeleteAsync(Guid id)
         {
-            throw new NotImplementedException();
-        }
+            using var transaction = _db.BeginTransaction();
 
-        public Task UpdateAsync(Project entity)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteAsync(Guid id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<Project?> GetBySlugAsync(string slug)
-        {
-            Project? result = null;
-
-            await _db.QueryAsync<Project, Resource, Tag, Project>(
+            await _db.ExecuteAsync(
                 """
-                SELECT
-                	Projects.Id,
-                	Projects.CreatedAt,
-                	Projects.UpdatedAt,
-                    Projects.ReleasedAt,
-                	Projects.AccountId,
-                	Projects.Name,
-                    Projects.Slug,
-                	Projects.Description,
-                	Projects.IsPinned,
-                    Images.Id,
-                	Images.Path,
-                	Images.Title,
-                	Tags.Tag
-                FROM
-                	Projects
-                	LEFT JOIN ProjectImages ON ProjectImages.ProjectId = Projects.Id
-                	LEFT JOIN Images ON Images.Id = ProjectImages.ImageId
-                	LEFT JOIN ProjectTags ON ProjectTags.ProjectId = Projects.Id
-                	LEFT JOIN Tags ON Tags.Id = ProjectTags.TagId
-                WHERE 
-                    Projects.Slug LIKE @Slug
-                ORDER BY
-                    ProjectImages.ImageOrder ASC
+                DELETE FROM Projects WHERE Projects.Id = @ProjectId;
                 """,
-                (project, image, tag) =>
-                {
-                    result ??= project;
-
-                    if (tag is not null)
-                        result.Tags.Add(tag);
-                    if (image is not null && !result.Images.Contains(image))
-                        result.Images.Add(image);
-
-                    return project;
-                },
                 new
                 {
-                    Slug = slug,
+                    ProjectId = id
                 },
-                splitOn: "Id,Tag");
+                transaction);
 
-            return result;
+            await DeleteTags(id, transaction);
+            await DeleteImages(id, transaction);
+            await DeletePackages(id, transaction);
+        }
+
+        private async Task DeleteTags(Guid entityId, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                DELETE FROM ProjectTags WHERE ProjectTags.ProjectId = @ProjectId;
+                """,
+                new
+                {
+                    ProjectId = entityId
+                },
+                transaction);
+        }
+
+        private async Task InsertTags(Project entity, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                -- Insert all tag relations
+                INSERT INTO ProjectTags (
+                    Id,
+                    ProjectId,
+                    TagId
+                ) VALUES (
+                    @Id,
+                    @ProjectId,
+                    @TagId
+                );
+                """,
+                entity.Tags.Select(
+                    x => new
+                    {
+                        Id = Guid.CreateVersion7(),
+                        ProjectId = entity.Id,
+                        TagId = x.Id
+                    }),
+                transaction);
+        }
+
+        private async Task UpsertTags(Project entity, IDbTransaction transaction)
+        {
+            await DeleteTags(entity.Id, transaction);
+            await InsertTags(entity, transaction);
+        }
+
+        private async Task DeleteImages(Guid entityId, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                -- Delete existing project images
+                DELETE FROM Resources USING ProjectImages
+                WHERE ProjectImages.ProjectId = @ProjectId
+                  AND ProjectImages.Id = Resources.Id;
+
+                -- Delete existing project images relations
+                DELETE FROM ProjectImages WHERE ProjectImages.ProjectId = @ProjectId;
+                """,
+                new
+                {
+                    ProjectId = entityId
+                },
+                transaction);
+        }
+
+        private async Task InsertImages(Project entity, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                $"""
+                -- Insert all images
+                INSERT INTO Resources (
+                    Id,
+                    CreatedAt,
+                    UpdatedAt,
+                    Path
+                ) VALUES (
+                    @{nameof(Resource.Id)},
+                    @{nameof(Resource.CreatedAt)},
+                    @{nameof(Resource.UpdatedAt)},
+                    @{nameof(Resource.Path)}
+                );
+
+                -- Insert all project images relations
+                INSERT INTO ProjectImages (
+                    Id,
+                    ProjectId,
+                    ImageOrder
+                ) VALUES (
+                    @{nameof(Resource.Id)},
+                    @ProjectId,
+                    @ImageOrder
+                );
+                """,
+                entity.Images.Select(
+                    (x, i) => new
+                    {
+                        Id = x.Id,
+                        CreatedAt = x.CreatedAt,
+                        UpdatedAt = x.UpdatedAt,
+                        Path = x.Path,
+                        ProjectId = entity.Id,
+                        ImageOrder = i
+                    }),
+                transaction);
+        }
+
+        private async Task UpsertImages(Project entity, IDbTransaction transaction)
+        {
+            await DeleteImages(entity.Id, transaction);
+            await InsertImages(entity, transaction);
+        }
+
+        private async Task DeletePackages(Guid entityId, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                -- Delete existing package resources
+                DELETE FROM Resources USING Packages
+                WHERE Packages.ProjectId = @ProjectId
+                  AND Packages.Id = Resources.Id;
+
+                -- Delete existing package relations
+                DELETE FROM Packages WHERE Packages.ProjectId = @ProjectId;
+                """,
+                new
+                {
+                    ProjectId = entityId
+                },
+                transaction);
+        }
+
+        private async Task InsertPackages(Project entity, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                $"""
+                -- Insert all images
+                INSERT INTO Resources (
+                    Id,
+                    CreatedAt,
+                    UpdatedAt,
+                    Path
+                ) VALUES (
+                    @{nameof(Resource.Id)},
+                    @{nameof(Resource.CreatedAt)},
+                    @{nameof(Resource.UpdatedAt)},
+                    @{nameof(Resource.Path)}
+                );
+
+                -- Insert all project images relations
+                INSERT INTO Packages (
+                    Id,
+                    ProjectId,
+                    Name,
+                    Version,
+                    TargetOS,
+                    Size
+                ) VALUES (
+                    @{nameof(Package.Id)},
+                    @ProjectId,
+                    @{nameof(Package.Name)},
+                    @{nameof(Package.Version)},
+                    @{nameof(Package.TargetOS)},
+                    @{nameof(Package.Size)}
+                );
+                """,
+                entity.Packages.Select(
+                    x => new
+                    {
+                        Id = x.Id,
+                        CreatedAt = x.CreatedAt,
+                        UpdatedAt = x.UpdatedAt,
+                        Path = x.Path,
+                        ProjectId = entity.Id,
+                        Name = x.Name,
+                        Version = x.Version,
+                        TargetOS = x.TargetOS,
+                        Size = x.Size
+                    }),
+                transaction);
+        }
+
+        private async Task UpsertPackages(Project entity, IDbTransaction transaction)
+        {
+            await DeletePackages(entity.Id, transaction);
+            await InsertPackages(entity, transaction);
         }
     }
 }

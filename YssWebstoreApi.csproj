@@ -21,6 +21,9 @@
     <None Remove="Persistance\Migrations\Script0012.sql" />
     <None Remove="Persistance\Migrations\Script0013.sql" />
     <None Remove="Persistance\Migrations\Script0014.sql" />
+    <None Remove="Persistance\Migrations\Script0015.sql" />
+    <None Remove="Persistance\Migrations\Script0016.sql" />
+    <None Remove="Persistance\Migrations\Script0017.sql" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,6 +41,9 @@
     <EmbeddedResource Include="Persistance\Migrations\Script0012.sql" />
     <EmbeddedResource Include="Persistance\Migrations\Script0013.sql" />
     <EmbeddedResource Include="Persistance\Migrations\Script0014.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0015.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0016.sql" />
+    <EmbeddedResource Include="Persistance\Migrations\Script0017.sql" />
   </ItemGroup>
 
   <ItemGroup>

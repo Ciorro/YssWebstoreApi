@@ -18,6 +18,7 @@ namespace YssWebstoreApi.Entities.Tags
         {
             _tags = new HashSet<Tag>(tags.Select(Tag.Parse));
         }
+
         public int Count
         {
             get => _tags.Count;

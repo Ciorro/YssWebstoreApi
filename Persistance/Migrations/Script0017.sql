@@ -1,0 +1,2 @@
+ALTER TABLE Packages DROP COLUMN CreatedAt;
+ALTER TABLE PAckages DROP COLUMN UpdatedAt;
