@@ -7,5 +7,6 @@ namespace YssWebstoreApi.Entities
         public required string Name { get; set; }
         public required string Version { get; set; }
         public OperatingSystem TargetOS { get; set; }
+        public long Size { get; set; }
     }
 }

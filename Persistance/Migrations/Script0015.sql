@@ -1,0 +1,1 @@
+ALTER TABLE Resources DROP COLUMN Size;

@@ -30,8 +30,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.Id,
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
-                    Resources.Path,
-                    Resources.Size
+                    Resources.Path
                 FROM
                     Posts
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
@@ -104,8 +103,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                        @{nameof(Resource.Id)}, 
                        @{nameof(Resource.CreatedAt)},   
                        @{nameof(Resource.UpdatedAt)}, 
-                       @{nameof(Resource.Path)}, 
-                       @{nameof(Resource.Size)}                     
+                       @{nameof(Resource.Path)}                  
                     )
                     """);
             }
@@ -135,20 +133,17 @@ namespace YssWebstoreApi.Persistance.Repositories
                         Id,
                         CreatedAt,
                         UpdatedAt,
-                        Path,
-                        Size
+                        Path
                     ) VALUES (
                        @{nameof(Resource.Id)}, 
                        @{nameof(Resource.CreatedAt)},   
                        @{nameof(Resource.UpdatedAt)}, 
-                       @{nameof(Resource.Path)}, 
-                       @{nameof(Resource.Size)}                     
+                       @{nameof(Resource.Path)}                    
                     ) ON CONFLICT (Id) DO UPDATE
                     SET Id = @{nameof(Resource.Id)},
                         CreatedAt = @{nameof(Resource.CreatedAt)},
                         UpdatedAt = @{nameof(Resource.UpdatedAt)},
-                        Path = @{nameof(Resource.Path)},
-                        Size = @{nameof(Resource.Size)}
+                        Path = @{nameof(Resource.Path)}
                     """, entity.Image);
             }
 

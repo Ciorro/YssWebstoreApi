@@ -51,8 +51,7 @@ namespace YssWebstoreApi.Features.Posts.Commands
                 Id = id,
                 CreatedAt = creationTime,
                 UpdatedAt = creationTime,
-                Path = fileName,
-                Size = 0
+                Path = fileName
             };
 
             await _postRepository.UpdateAsync(post);
