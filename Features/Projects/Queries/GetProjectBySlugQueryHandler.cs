@@ -19,60 +19,63 @@ namespace YssWebstoreApi.Features.Projects.Queries
 
         public async Task<Result<ProjectResponse>> HandleAsync(GetProjectBySlugQuery message, CancellationToken cancellationToken = default)
         {
-            ProjectResponse? result = null;
-
-            await _db.QueryAsync<ProjectResponse, AccountResponse, string, string, ProjectResponse>(
+            using var results = await _db.QueryMultipleAsync(
                 """
+                -- Select project
                 SELECT
-                	Projects.Id,
+                    Projects.Id,
                 	Projects.CreatedAt,
                 	Projects.UpdatedAt,
                 	Projects.ReleasedAt,
                 	Projects.Name,
                 	Projects.Slug,
-                	Projects.Description,
-                	Accounts.Id,
+                	Projects.Description
+                FROM Projects WHERE Projects.Slug = @Slug;
+
+                -- Select account
+                SELECT
+                    Accounts.Id,
                 	Accounts.UniqueName,
                 	Accounts.DisplayName,
-                	Accounts.StatusText,
-                	Tags.Tag,
-                	Resources.Path
-                FROM
-                	Projects
-                	INNER JOIN Accounts ON Accounts.Id = Projects.AccountId
-                	LEFT JOIN ProjectTags ON ProjectTags.ProjectId = Projects.Id
-                	LEFT JOIN Tags ON Tags.Id = ProjectTags.TagId
-                	LEFT JOIN ProjectImages ON ProjectImages.ProjectId = Projects.Id
-                	LEFT JOIN Resources ON Resources.Id = ProjectImages.ResourceId
+                	Accounts.StatusText
+                FROM 
+                    Accounts JOIN Projects ON Projects.AccountId = Accounts.Id
                 WHERE
-                	Projects.Slug = @Slug
+                    Projects.Slug = @Slug;
+
+                -- Select tags
+                SELECT
+                    Tags.Tag
+                FROM 
+                    Tags 
+                    JOIN ProjectTags ON ProjectTags.TagId = Tags.Id
+                    JOIN Projects On Projects.Id = ProjectTags.ProjectId
+                WHERE 
+                    Projects.Slug = @Slug;
+
+                -- Select images
+                SELECT
+                    Resources.Path
+                FROM 
+                    Resources 
+                    JOIN ProjectImages ON ProjectImages.Id = Resources.Id
+                    JOIN Projects ON Projects.Id = ProjectImages.ProjectId
+                WHERE
+                    Projects.Slug = @Slug
                 ORDER BY
-                	ProjectImages.ImageOrder
+                    ProjectImages.ImageOrder ASC;
                 """,
-                (project, account, tag, image) =>
-                {
-                    result ??= project;
-                    result.Account = account;
+                new { message.Slug });
 
-                    if (!result.Tags.Contains(tag) && !string.IsNullOrEmpty(tag))
-                        result.Tags.Add(tag);
-                    if (!result.Images.Contains(image) && !string.IsNullOrEmpty(image))
-                        result.Images.Add(image);
-
-                    return project;
-                },
-                new
-                {
-                    message.Slug
-                },
-                splitOn: "id,id,tag,path");
-
-            if (result is null)
-            {
+            var project = await results.ReadSingleOrDefaultAsync<ProjectResponse>();
+            if (project is null)
                 return CommonErrors.ResourceNotFound;
-            }
 
-            return result;
+            project.Account = await results.ReadSingleAsync<AccountResponse>();
+            project.Tags = [.. await results.ReadAsync<string>()];
+            project.Images = [.. await results.ReadAsync<string>()];
+
+            return project;
         }
     }
 }
