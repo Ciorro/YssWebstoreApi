@@ -4,7 +4,7 @@ namespace YssWebstoreApi.Entities
 {
     public class Review : IEntity
     {
-        public Guid Id { get; }
+        public Guid Id { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
         public Guid AccountId { get; set; }
