@@ -6,6 +6,7 @@ using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Projects.Commands;
+using YssWebstoreApi.Features.Projects.Queries;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Api.Controllers
@@ -27,6 +28,20 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> GetReviews(Guid projectId)
         {
             return Ok(new Page<int>(1, 10, 0, []));
+        }
+
+        [HttpGet("summary")]
+        public async Task<IActionResult> GetReviewsSummary(Guid projectId)
+        {
+            Result<ReviewsSummaryResponse> result = await _queryMediator.QueryAsync(
+                new GetReviewsSummaryQuery(projectId));
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
         }
 
         [HttpPost, Authorize]
