@@ -7,6 +7,7 @@ using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Posts.Commands;
+using YssWebstoreApi.Features.Projects.Commands;
 using YssWebstoreApi.Features.Projects.Queries;
 using YssWebstoreApi.Features.Search.Queries;
 using YssWebstoreApi.Utils;
@@ -53,6 +54,23 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result<ProjectResponse> result = await _queryMediator.QueryAsync(
                 new GetProjectBySlugQuery(slug));
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPost, Authorize]
+        public async Task<IActionResult> CreateProject(CreateProjectRequest request)
+        {
+            Result<Guid> result = await _commandMediator.SendAsync(
+                new CreateProjectCommand(User.GetAccountId(), request.Name, request.Description)
+                {
+                    Tags = new( request.Tags)
+                });
 
             if (result.TryGetValue(out var value))
             {
