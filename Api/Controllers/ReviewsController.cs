@@ -77,5 +77,19 @@ namespace YssWebstoreApi.Api.Controllers
 
             return BadRequest();
         }
+
+        [HttpDelete, Authorize]
+        public async Task<IActionResult> DeleteReview(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+               new DeleteProjectReviewCommand(User.GetAccountId(), projectId));
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
     }
 }
