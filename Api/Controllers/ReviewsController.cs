@@ -60,5 +60,22 @@ namespace YssWebstoreApi.Api.Controllers
 
             return BadRequest();
         }
+
+        [HttpPut, Authorize]
+        public async Task<IActionResult> UpdateReview(Guid projectId, UpdateReviewRequest request)
+        {
+            Result result = await _commandMediator.SendAsync(
+               new UpdateProjectReviewCommand(User.GetAccountId(), projectId, request.Rate)
+               {
+                   Content = request.Content
+               });
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
     }
 }

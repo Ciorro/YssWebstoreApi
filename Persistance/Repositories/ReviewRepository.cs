@@ -5,7 +5,7 @@ using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories
 {
-    public class ReviewRepository : IRepository<Review>
+    public class ReviewRepository : IReviewRepository
     {
         private readonly IDbConnection _db;
 
@@ -63,7 +63,7 @@ namespace YssWebstoreApi.Persistance.Repositories
             await _db.ExecuteAsync(
                 $"""
                 UPDATE Reviews
-                SET Id = @{nameof(Review.Id)}
+                SET Id = @{nameof(Review.Id)},
                     CreatedAt = @{nameof(Review.CreatedAt)},
                     UpdatedAt = @{nameof(Review.UpdatedAt)},
                     AccountId = @{nameof(Review.AccountId)},
@@ -83,6 +83,30 @@ namespace YssWebstoreApi.Persistance.Repositories
                 new
                 {
                     Id = id
+                });
+        }
+
+        public async Task<Review?> GetByProjectAndAccount(Guid projectId, Guid accountId)
+        {
+            return await _db.QuerySingleOrDefaultAsync<Review>(
+                """
+                SELECT
+                    Reviews.Id,
+                    Reviews.CreatedAt,
+                    Reviews.UpdatedAt,
+                    Reviews.AccountId,
+                    Reviews.ProjectId,
+                    Reviews.Rate,
+                    Reviews.Content
+                FROM 
+                    Reviews 
+                WHERE Reviews.ProjectId = @ProjectId
+                  AND Reviews.AccountId = @AccountId
+                """,
+                new
+                {
+                    ProjectId = projectId,
+                    AccountId = accountId
                 });
         }
     }
