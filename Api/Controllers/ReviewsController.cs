@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
+using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Projects.Commands;
 using YssWebstoreApi.Features.Projects.Queries;
+using YssWebstoreApi.Features.Search.Queries;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Api.Controllers
@@ -25,9 +27,24 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReviews(Guid projectId)
+        public async Task<IActionResult> SearchReviews(Guid projectId, SearchReviewsRequest request)
         {
-            return Ok(new Page<int>(1, 10, 0, []));
+            Result<Page<ReviewResponse>> result = await _queryMediator.QueryAsync(
+                new SearchReviewsQuery()
+                {
+                    ProjectId = projectId,
+                    AccountId = request.AccountId,
+                    SearchText = request.SearchQuery,
+                    PageOptions = request.PageOptions,
+                    SortOptions = request.SortOptions
+                });
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
         }
 
         [HttpGet("summary")]
