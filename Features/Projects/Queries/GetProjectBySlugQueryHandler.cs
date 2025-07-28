@@ -3,6 +3,7 @@ using LiteBus.Queries.Abstractions;
 using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Projects;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Queries
@@ -11,10 +12,12 @@ namespace YssWebstoreApi.Features.Projects.Queries
         : IQueryHandler<GetProjectBySlugQuery, Result<ProjectResponse>>
     {
         private readonly IDbConnection _db;
+        private readonly IStorage _storage;
 
-        public GetProjectBySlugQueryHandler(IDbConnection dbConnection)
+        public GetProjectBySlugQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
             _db = dbConnection;
+            _storage = storage;
         }
 
         public async Task<Result<ProjectResponse>> HandleAsync(GetProjectBySlugQuery message, CancellationToken cancellationToken = default)
@@ -73,7 +76,11 @@ namespace YssWebstoreApi.Features.Projects.Queries
 
             project.Account = await results.ReadSingleAsync<AccountResponse>();
             project.Tags = [.. await results.ReadAsync<string>()];
-            project.Images = [.. await results.ReadAsync<string>()];
+
+            var imagePaths = (await results.ReadAsync<string>())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => _storage.GetUrl(x)!);
+            project.Images = [.. imagePaths];
 
             return project;
         }
