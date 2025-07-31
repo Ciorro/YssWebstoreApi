@@ -40,9 +40,12 @@ namespace YssWebstoreApi.Features.Projects.Queries
                     Accounts.Id,
                 	Accounts.UniqueName,
                 	Accounts.DisplayName,
-                	Accounts.StatusText
+                	Accounts.StatusText,
+                    Resources.Path AS AvatarUrl
                 FROM 
-                    Accounts JOIN Projects ON Projects.AccountId = Accounts.Id
+                    Accounts 
+                    JOIN Projects ON Projects.AccountId = Accounts.Id
+                    LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 WHERE
                     Projects.Slug = @Slug;
 
@@ -75,6 +78,8 @@ namespace YssWebstoreApi.Features.Projects.Queries
                 return CommonErrors.ResourceNotFound;
 
             project.Account = await results.ReadSingleAsync<AccountResponse>();
+            project.Account.AvatarUrl = _storage.GetUrl(project.Account.AvatarUrl!);
+
             project.Tags = [.. await results.ReadAsync<string>()];
 
             var imagePaths = (await results.ReadAsync<string>())

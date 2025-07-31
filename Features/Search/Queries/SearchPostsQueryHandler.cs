@@ -29,7 +29,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 .Skip(message.PageOptions.GetOffset())
                 .Take(message.PageOptions.PageSize);
 
-            var results = await _db.QueryAsync<PostResponse, AccountResponse, ProjectLinkResponse, string, PostResponse>(
+            var results = await _db.QueryAsync<PostResponse, AccountResponse, ProjectLinkResponse, string, string, PostResponse>(
                 """
                 WITH Ids AS (
                     SELECT
@@ -51,19 +51,22 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Projects.Id,
                     Projects.Name,
                     Projects.Slug,
-                    Resources.Path
+                    Images.Path,
+                    Avatar.Path
                 FROM 
                     Posts
                     INNER JOIN Ids ON Ids.Id = Posts.Id
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
                     LEFT JOIN Projects ON Projects.Id = Posts.TargetProjectId
-                    LEFT JOIN Resources ON Resources.Id = Posts.ImageResourceId
+                    LEFT JOIN Resources Images ON Images.Id = Posts.ImageResourceId
+                    LEFT JOIN Resources Avatar ON Avatar.Id = Accounts.AvatarResourceId
                 ORDER BY
                     Ids.Order
                 """,
-                (post, account, project, imgPath) =>
+                (post, account, project, imgPath, avatarPath) =>
                 {
                     post.Account = account;
+                    post.Account.AvatarUrl = _storage.GetUrl(avatarPath);
                     post.Project = project;
                     post.CoverImageUrl = _storage.GetUrl(imgPath);
 
@@ -73,7 +76,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 {
                     Ids = limitedResultsIds
                 },
-                splitOn: "Id,Path");
+                splitOn: "Id,,Id,Id,Path,Path");
 
             return new Page<PostResponse>(
                 pageNumber: message.PageOptions.PageNumber,

@@ -12,5 +12,6 @@ namespace YssWebstoreApi.Entities
         public required Credentials Credentials { get; set; }
         public ICollection<Session> Sessions { get; set; } = [];
         public string? StatusText { get; set; }
+        public Resource? Avatar { get; set; }
     }
 }

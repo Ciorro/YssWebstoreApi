@@ -4,6 +4,7 @@ using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -12,10 +13,12 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchProjectsQuery, Result<Page<ProjectSearchResult>>>
     {
         private readonly IDbConnection _db;
+        private readonly IStorage _storage;
 
-        public SearchProjectsQueryHandler(IDbConnection dbConnection)
+        public SearchProjectsQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
             _db = dbConnection;
+            _storage = storage;
         }
 
         public async Task<Result<Page<ProjectSearchResult>>> HandleAsync(SearchProjectsQuery message, CancellationToken cancellationToken = default)
@@ -47,7 +50,8 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Accounts.Id,
                     Accounts.UniqueName,
                     Accounts.DisplayName,
-                    Accounts.StatusText
+                    Accounts.StatusText,
+                    Resources.Path AS AvatarUrl
                 FROM
                     Projects
                     INNER JOIN Ids ON Ids.Id = Projects.Id
@@ -55,9 +59,11 @@ namespace YssWebstoreApi.Features.Search.Queries
                     LEFT JOIN Reviews ON Reviews.ProjectId = Projects.Id
                     LEFT JOIN ProjectTags ON ProjectTags.ProjectId = Projects.Id
                     LEFT JOIN Tags ON Tags.Id = ProjectTags.TagId
+                    LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 GROUP BY
                     Projects.Id,
                     Accounts.Id,
+                    Resources.Id,
                     Ids.Order
                 ORDER BY
                     Ids.Order
@@ -65,6 +71,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 (project, account) =>
                 {
                     project.Account = account;
+                    project.Account.AvatarUrl = _storage.GetUrl(project.Account.AvatarUrl!);
                     return project;
                 },
                 new

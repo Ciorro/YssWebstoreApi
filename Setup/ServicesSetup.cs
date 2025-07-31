@@ -9,9 +9,12 @@ namespace YssWebstoreApi.Setup
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddScoped<ISessionService, SessionService>();
+
+            // Storage services
             services.AddScoped<IStorage, SupabaseStorage>();
             services.AddScoped<IImageStorage, ImageStorage>();
             services.AddScoped<IPostImageStorage, PostImageStorage>();
+            services.AddScoped<IAvatarStorage, AvatarStorage>();
             return services;
         }
     }

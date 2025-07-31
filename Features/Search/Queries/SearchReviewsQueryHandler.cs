@@ -5,6 +5,7 @@ using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -13,10 +14,12 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchReviewsQuery, Result<Page<ReviewResponse>>>
     {
         private readonly IDbConnection _db;
+        private readonly IStorage _storage;
 
-        public SearchReviewsQueryHandler(IDbConnection dbConnection)
+        public SearchReviewsQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
             _db = dbConnection;
+            _storage = storage;
         }
 
         public async Task<Result<Page<ReviewResponse>>> HandleAsync(SearchReviewsQuery message, CancellationToken cancellationToken = default)
@@ -44,17 +47,20 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Accounts.Id,
                     Accounts.UniqueName,
                     Accounts.DisplayName,
-                    Accounts.StatusText
+                    Accounts.StatusText,
+                    Resources.Path AS AvatarUrl
                 FROM
                     Reviews
                     INNER JOIN Ids ON Ids.Id = Reviews.Id
                     INNER JOIN Accounts ON Accounts.Id = Reviews.AccountId
+                    LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 ORDER BY
                     Ids.Order
                 """,
                 (review, account) =>
                 {
                     review.Account = account;
+                    review.Account.AvatarUrl = _storage.GetUrl(review.Account.AvatarUrl!);
                     return review;
                 },
                 new

@@ -19,5 +19,8 @@
 
         public static readonly ImageProperties PostImage
             = new ImageProperties(1000, 500, "jpg");
+
+        public static readonly ImageProperties AvatarImage
+            = new ImageProperties(256, 256, "jpg");
     }
 }

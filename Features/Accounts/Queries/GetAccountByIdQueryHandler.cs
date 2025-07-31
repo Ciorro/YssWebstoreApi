@@ -1,6 +1,7 @@
 ﻿using LiteBus.Queries.Abstractions;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Queries
@@ -9,10 +10,12 @@ namespace YssWebstoreApi.Features.Accounts.Queries
         : IQueryHandler<GetAccountByIdQuery, Result<AccountResponse>>
     {
         private readonly IAccountRepository _accountRepository;
+        private readonly IStorage _storage;
 
-        public GetAccountByIdQueryHandler(IAccountRepository accountRepository)
+        public GetAccountByIdQueryHandler(IAccountRepository accountRepository, IStorage storage)
         {
             _accountRepository = accountRepository;
+            _storage = storage;
         }
 
         public async Task<Result<AccountResponse>> HandleAsync(GetAccountByIdQuery message, CancellationToken cancellationToken = default)
@@ -29,7 +32,8 @@ namespace YssWebstoreApi.Features.Accounts.Queries
                 Id = account.Id,
                 UniqueName = account.UniqueName,
                 DisplayName = account.DisplayName,
-                StatusText = account.StatusText
+                StatusText = account.StatusText,
+                AvatarUrl = _storage.GetUrl(account.Avatar?.Path!)
             };
         }
     }

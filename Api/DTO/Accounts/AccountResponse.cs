@@ -6,5 +6,6 @@
         public required string UniqueName { get; set; }
         public required string DisplayName { get; set; }
         public string? StatusText { get; set; }
+        public string? AvatarUrl { get; set; }
     }
 }

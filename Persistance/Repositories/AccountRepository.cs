@@ -17,18 +17,19 @@ namespace YssWebstoreApi.Persistance.Repositories
 
         public async Task<Account?> GetAsync(Guid id)
         {
-            Account? result = null;
-
-            await _db.QueryAsync<Account, Credentials, Session, Account>(
+            using var results = await _db.QueryMultipleAsync(
                 """
                 SELECT
-                	Accounts.Id,
+                    Accounts.Id,
                 	Accounts.CreatedAt,
                 	Accounts.UpdatedAt,
                 	Accounts.UniqueName,
                 	Accounts.DisplayName,
-                	Accounts.StatusText,
-                	Credentials.Id,
+                	Accounts.StatusText
+                FROM Accounts WHERE Accounts.Id = @Id;
+
+                SELECT 
+                    Credentials.Id,
                 	Credentials.CreatedAt,
                 	Credentials.UpdatedAt,
                 	Credentials.Email,
@@ -38,34 +39,42 @@ namespace YssWebstoreApi.Persistance.Repositories
                 	Credentials.VerificationCodeExpiresAt,
                 	Credentials.PasswordResetCode,
                 	Credentials.PasswordResetCodeExpiresAt,
-                	Credentials.IsVerified,
-                	Sessions.Id,
+                	Credentials.IsVerified
+                FROM Credentials WHERE Credentials.AccountId = @Id;
+
+                SELECT 
+                    Sessions.Id,
                 	Sessions.CreatedAt,
                 	Sessions.UpdatedAt,
                 	Sessions.SessionToken,
                 	Sessions.DeviceInfo
-                FROM
-                	Accounts
-                	INNER JOIN Credentials ON Credentials.AccountId = Accounts.Id
-                	LEFT JOIN Sessions ON Sessions.AccountId = Accounts.Id
+                FROM Sessions WHERE Sessions.AccountId = @Id;
+
+                SELECT
+                    Resources.Id,
+                    Resources.CreatedAt,
+                    Resources.UpdatedAt,
+                    Resources.Path
+                FROM 
+                    Accounts JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 WHERE
-                	Accounts.Id = @Id
-                """,
-                (account, credentials, session) =>
+                    Accounts.Id = @Id;
+                """, new
                 {
-                    result ??= account;
-                    result.Credentials = credentials;
+                    Id = id
+                });
 
-                    if (session is not null)
-                    {
-                        result.Sessions.Add(session);
-                    }
+            var account = await results.ReadSingleOrDefaultAsync<Account>();
+            if (account is null)
+            {
+                return null;
+            }
 
-                    return result;
-                },
-                new { Id = id });
+            account.Credentials = await results.ReadSingleAsync<Credentials>();
+            account.Sessions = [.. await results.ReadAsync<Session>()];
+            account.Avatar = await results.ReadSingleOrDefaultAsync<Resource>();
 
-            return result;
+            return account;
         }
 
         public async Task InsertAsync(Account entity)
@@ -89,16 +98,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     @{nameof(Account.DisplayName)},
                     @{nameof(Account.StatusText)}
                 );
-                """,
-                new
-                {
-                    entity.Id,
-                    entity.CreatedAt,
-                    entity.UpdatedAt,
-                    entity.UniqueName,
-                    entity.DisplayName,
-                    entity.StatusText
-                }, transaction);
+                """, entity, transaction);
 
             await _db.ExecuteAsync(
                 $"""
@@ -146,33 +146,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     entity.Credentials.IsVerified
                 }, transaction);
 
-            await _db.ExecuteAsync(
-                $"""
-                INSERT INTO Sessions (
-                    AccountId,
-                    Id,
-                    CreatedAt,
-                    UpdatedAt,
-                    SessionToken,
-                    DeviceInfo
-                ) VALUES (
-                    @AccountId,
-                    @{nameof(Session.Id)},
-                    @{nameof(Session.CreatedAt)},
-                    @{nameof(Session.UpdatedAt)},
-                    @{nameof(Session.SessionToken)},
-                    @{nameof(Session.DeviceInfo)}                
-                );
-                """,
-                entity.Sessions.Select(x => new
-                {
-                    AccountId = entity.Id,
-                    x.Id,
-                    x.CreatedAt,
-                    x.UpdatedAt,
-                    x.SessionToken,
-                    x.DeviceInfo
-                }), transaction);
+            await InsertSessions(entity, transaction);
+            await InsertAvatar(entity, transaction);
 
             transaction.Commit();
         }
@@ -214,6 +189,79 @@ namespace YssWebstoreApi.Persistance.Repositories
                 """,
                 entity.Credentials, transaction);
 
+            await UpsertSessions(entity, transaction);
+            await UpsertAvatar(entity, transaction);
+
+            transaction.Commit();
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            using var transaction = _db.BeginTransaction();
+
+            await _db.ExecuteAsync(
+                """
+                DELETE FROM Credentials WHERE AccountId = @Id
+                """,
+                new { Id = id }, transaction);
+
+            await _db.ExecuteAsync(
+                """
+                DELETE FROM Accounts WHERE Id = @Id
+                """,
+                new { Id = id }, transaction);
+
+            await DeleteSessions(id, transaction);
+            await DeleteAvatar(id, transaction);
+
+            transaction.Commit();
+        }
+
+        public async Task<Account?> GetByEmailAsync(string email)
+        {
+            Guid? accountId = await _db.QuerySingleOrDefaultAsync<Guid>(
+                """
+                SELECT Credentials.AccountId FROM Credentials
+                WHERE
+                    Credentials.Email = @Email
+                """,
+                new
+                {
+                    Email = email
+                });
+
+            return accountId is not null ?
+                await GetAsync(accountId.Value) : null;
+        }
+
+        public async Task<Account?> GetByUniqueNameAsync(string uniqueName)
+        {
+            Guid? accountId = await _db.QuerySingleOrDefaultAsync<Guid>(
+                """
+                SELECT Accounts.Id FROM Accounts
+                WHERE
+                    Accounts.UniqueName = @UniqueName
+                """,
+                new
+                {
+                    UniqueName = uniqueName
+                });
+
+            return accountId is not null ?
+                await GetAsync(accountId.Value) : null;
+        }
+
+        private async Task DeleteSessions(Guid entityId, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                DELETE FROM Sessions WHERE AccountId = @Id
+                """,
+                new { Id = entityId }, transaction);
+        }
+
+        private async Task InsertSessions(Account entity, IDbTransaction transaction)
+        {
             await _db.ExecuteAsync(
                 $"""
                 INSERT INTO Sessions (
@@ -229,13 +277,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     @{nameof(Session.CreatedAt)},
                     @{nameof(Session.UpdatedAt)},
                     @{nameof(Session.SessionToken)},
-                    @{nameof(Session.DeviceInfo)} 
-                ) ON CONFLICT (Id) DO UPDATE
-                SET Id = @{nameof(Session.Id)},
-                    CreatedAt = @{nameof(Session.CreatedAt)},
-                    UpdatedAt = @{nameof(Session.UpdatedAt)},
-                    SessionToken = @{nameof(Session.SessionToken)},
-                    DeviceInfo = @{nameof(Session.DeviceInfo)}
+                    @{nameof(Session.DeviceInfo)}                
+                );
                 """,
                 entity.Sessions.Select(x => new
                 {
@@ -246,152 +289,77 @@ namespace YssWebstoreApi.Persistance.Repositories
                     x.SessionToken,
                     x.DeviceInfo
                 }), transaction);
-
-            await _db.ExecuteAsync(
-                $"""
-                DELETE FROM Sessions 
-                WHERE 
-                    AccountId = @AccountId AND 
-                    Id <> ALL(@SessionIds)
-                """,
-                new
-                {
-                    AccountId = entity.Id,
-                    SessionIds = entity.Sessions.Select(x => x.Id).ToList()
-                }, transaction);
-
-            transaction.Commit();
         }
 
-        public async Task DeleteAsync(Guid id)
+        private async Task UpsertSessions(Account entity, IDbTransaction transaction)
         {
-            using var transaction = _db.BeginTransaction();
-
-            await _db.ExecuteAsync(
-                """
-                DELETE FROM Sessions WHERE AccountId = @Id
-                """,
-                new { Id = id }, transaction);
-
-            await _db.ExecuteAsync(
-                """
-                DELETE FROM Credentials WHERE AccountId = @Id
-                """,
-                new { Id = id }, transaction);
-
-            await _db.ExecuteAsync(
-                """
-                DELETE FROM Accounts WHERE Id = @Id
-                """,
-                new { Id = id }, transaction);
-
-            transaction.Commit();
+            await DeleteSessions(entity.Id, transaction);
+            await InsertSessions(entity, transaction);
         }
 
-        public async Task<Account?> GetByEmailAsync(string email)
+        private async Task DeleteAvatar(Guid entityId, IDbTransaction transaction)
         {
-            Account? result = null;
-
-            await _db.QueryAsync<Account, Credentials, Session, Account>(
+            await _db.ExecuteAsync(
                 """
-                SELECT
-                	Accounts.Id,
-                	Accounts.CreatedAt,
-                	Accounts.UpdatedAt,
-                	Accounts.UniqueName,
-                	Accounts.DisplayName,
-                	Accounts.StatusText,
-                	Credentials.Id,
-                	Credentials.CreatedAt,
-                	Credentials.UpdatedAt,
-                	Credentials.Email,
-                	Credentials.PasswordHash,
-                	Credentials.PasswordSalt,
-                	Credentials.VerificationCode,
-                	Credentials.VerificationCodeExpiresAt,
-                	Credentials.PasswordResetCode,
-                	Credentials.PasswordResetCodeExpiresAt,
-                	Credentials.IsVerified,
-                	Sessions.Id,
-                	Sessions.CreatedAt,
-                	Sessions.UpdatedAt,
-                	Sessions.SessionToken,
-                	Sessions.DeviceInfo
-                FROM
-                	Accounts
-                	INNER JOIN Credentials ON Credentials.AccountId = Accounts.Id
-                	LEFT JOIN Sessions ON Sessions.AccountId = Accounts.Id
+                DELETE FROM Resources USING Accounts
+                WHERE Accounts.Id = @AccountId
+                  AND Accounts.AvatarResourceId = Resources.Id;
+
+                UPDATE Accounts 
+                SET 
+                    AvatarResourceId = NULL
                 WHERE
-                	Credentials.Email = @Email
-                """,
-                (account, credentials, session) =>
-                {
-                    result ??= account;
-                    result.Credentials = credentials;
-
-                    if (session is not null)
-                    {
-                        result.Sessions.Add(session);
-                    }
-
-                    return result;
-                },
-                new { Email = email });
-
-            return result;
+                    Id = @AccountId;
+                
+                """, new { AccountId = entityId }, transaction);
         }
 
-        public async Task<Account?> GetByUniqueNameAsync(string uniqueName)
+        private async Task InsertAvatar(Account entity, IDbTransaction transaction)
         {
-            Account? result = null;
+            if (entity.Avatar is null)
+            {
+                return;
+            }
 
-            await _db.QueryAsync<Account, Credentials, Session, Account>(
-                """
-                SELECT
-                	Accounts.Id,
-                	Accounts.CreatedAt,
-                	Accounts.UpdatedAt,
-                	Accounts.UniqueName,
-                	Accounts.DisplayName,
-                	Accounts.StatusText,
-                	Credentials.Id,
-                	Credentials.CreatedAt,
-                	Credentials.UpdatedAt,
-                	Credentials.Email,
-                	Credentials.PasswordHash,
-                	Credentials.PasswordSalt,
-                	Credentials.VerificationCode,
-                	Credentials.VerificationCodeExpiresAt,
-                	Credentials.PasswordResetCode,
-                	Credentials.PasswordResetCodeExpiresAt,
-                	Credentials.IsVerified,
-                	Sessions.Id,
-                	Sessions.CreatedAt,
-                	Sessions.UpdatedAt,
-                	Sessions.SessionToken,
-                	Sessions.DeviceInfo
-                FROM
-                	Accounts
-                	INNER JOIN Credentials ON Credentials.AccountId = Accounts.Id
-                	LEFT JOIN Sessions ON Sessions.AccountId = Accounts.Id
-                WHERE
-                	Accounts.UniqueName = @UniqueName
-                """,
-                (account, credentials, session) =>
-                {
-                    result ??= account;
-                    result.Credentials = credentials;
+            await _db.ExecuteAsync(
+                    $"""
+                    INSERT INTO Resources (
+                        Id,
+                        CreatedAt,
+                        UpdatedAt,
+                        Path
+                    ) VALUES (
+                       @{nameof(Resource.Id)}, 
+                       @{nameof(Resource.CreatedAt)},   
+                       @{nameof(Resource.UpdatedAt)}, 
+                       @{nameof(Resource.Path)}                    
+                    ) ON CONFLICT (Id) DO UPDATE
+                    SET Id = @{nameof(Resource.Id)},
+                        CreatedAt = @{nameof(Resource.CreatedAt)},
+                        UpdatedAt = @{nameof(Resource.UpdatedAt)},
+                        Path = @{nameof(Resource.Path)};
 
-                    if (session is not null)
+                    UPDATE Accounts
+                    SET
+                        AvatarResourceId = @{nameof(Resource.Id)}
+                    WHERE
+                        Id = @AccountId;
+                    """,
+                    new
                     {
-                        result.Sessions.Add(session);
-                    }
+                        entity.Avatar.Id,
+                        entity.Avatar.CreatedAt,
+                        entity.Avatar.UpdatedAt,
+                        entity.Avatar.Path,
+                        AccountId = entity.Id
+                    },
+                    transaction);
+        }
 
-                    return result;
-                },
-                new { UniqueName = uniqueName });
-
-            return result;
+        private async Task UpsertAvatar(Account entity, IDbTransaction transaction)
+        {
+            await DeleteAvatar(entity.Id, transaction);
+            await InsertAvatar(entity, transaction);
         }
     }
 }
