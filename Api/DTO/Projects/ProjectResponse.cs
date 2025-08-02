@@ -12,6 +12,7 @@ namespace YssWebstoreApi.Api.DTO.Projects
         public required string Name { get; set; }
         public required string Slug { get; set; }
         public required string Description { get; set; }
+        public string? IconUrl { get; set; }
         public IList<string> Tags { get; set; } = [];
         public IList<string> Images { get; set; } = [];
     }

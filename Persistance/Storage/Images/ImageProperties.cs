@@ -22,5 +22,8 @@
 
         public static readonly ImageProperties AvatarImage
             = new ImageProperties(256, 256, "jpg");
+
+        public static readonly ImageProperties ProjectIcon
+            = new ImageProperties(128, 128, "png");
     }
 }

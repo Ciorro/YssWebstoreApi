@@ -32,8 +32,12 @@ namespace YssWebstoreApi.Features.Projects.Queries
                 	Projects.ReleasedAt,
                 	Projects.Name,
                 	Projects.Slug,
-                	Projects.Description
-                FROM Projects WHERE Projects.Slug = @Slug;
+                	Projects.Description,
+                    Resources.Path AS IconUrl
+                FROM 
+                    Projects LEFT JOIN Resources ON Resources.Id = Projects.IconResourceId
+                WHERE 
+                    Projects.Slug = @Slug;
 
                 -- Select account
                 SELECT
@@ -77,6 +81,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
             if (project is null)
                 return CommonErrors.ResourceNotFound;
 
+            project.IconUrl = _storage.GetUrl(project.IconUrl!);
             project.Account = await results.ReadSingleAsync<AccountResponse>();
             project.Account.AvatarUrl = _storage.GetUrl(project.Account.AvatarUrl!);
 

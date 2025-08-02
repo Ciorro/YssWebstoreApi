@@ -5,19 +5,19 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class CreateProjectReviewCommandHandler
-        : ICommandHandler<CreateProjectReviewCommand, Result<Guid>>
+    public class CreateReviewCommandHandler
+        : ICommandHandler<CreateReviewCommand, Result<Guid>>
     {
         private readonly IRepository<Review> _reviewRepository;
         private readonly TimeProvider _timeProvider;
 
-        public CreateProjectReviewCommandHandler(IRepository<Review> reviewRepository, TimeProvider timeProvider)
+        public CreateReviewCommandHandler(IRepository<Review> reviewRepository, TimeProvider timeProvider)
         {
             _reviewRepository = reviewRepository;
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<Guid>> HandleAsync(CreateProjectReviewCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result<Guid>> HandleAsync(CreateReviewCommand message, CancellationToken cancellationToken = default)
         {
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
 

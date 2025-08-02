@@ -65,7 +65,7 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> CreateReview(Guid projectId, CreateReviewRequest request)
         {
             Result<Guid> result = await _commandMediator.SendAsync(
-                new CreateProjectReviewCommand(User.GetAccountId(), projectId, request.Rate)
+                new CreateReviewCommand(User.GetAccountId(), projectId, request.Rate)
                 {
                     Content = request.Content
                 });
@@ -82,7 +82,7 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> UpdateReview(Guid projectId, UpdateReviewRequest request)
         {
             Result result = await _commandMediator.SendAsync(
-               new UpdateProjectReviewCommand(User.GetAccountId(), projectId, request.Rate)
+               new UpdateReviewCommand(User.GetAccountId(), projectId, request.Rate)
                {
                    Content = request.Content
                });
@@ -99,7 +99,7 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> DeleteReview(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
-               new DeleteProjectReviewCommand(User.GetAccountId(), projectId));
+               new DeleteReviewCommand(User.GetAccountId(), projectId));
 
             if (result.Success)
             {

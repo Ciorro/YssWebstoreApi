@@ -4,19 +4,19 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class UpdateProjectReviewCommandHandler
-        : ICommandHandler<UpdateProjectReviewCommand, Result>
+    public class UpdateReviewCommandHandler
+        : ICommandHandler<UpdateReviewCommand, Result>
     {
         private readonly IReviewRepository _reviewRepository;
         private readonly TimeProvider _timeProvider;
 
-        public UpdateProjectReviewCommandHandler(IReviewRepository reviewRepository, TimeProvider timeProvider)
+        public UpdateReviewCommandHandler(IReviewRepository reviewRepository, TimeProvider timeProvider)
         {
             _reviewRepository = reviewRepository;
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result> HandleAsync(UpdateProjectReviewCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result> HandleAsync(UpdateReviewCommand message, CancellationToken cancellationToken = default)
         {
             var review = await _reviewRepository.GetByProjectAndAccount(
                 message.ProjectId, message.AccountId);

@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Api.Middlewares.Attributes;
-using YssWebstoreApi.Entities;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Accounts.Commands;
 using YssWebstoreApi.Features.Accounts.Queries;
@@ -39,12 +38,12 @@ namespace YssWebstoreApi.Api.Controllers
                     PageOptions = request.PageOptions,
                     SortOptions = request.SortOptions
                 });
-            
+
             if (result.TryGetValue(out var value))
             {
                 return Ok(value);
             }
-            
+
             return BadRequest();
         }
 
@@ -123,12 +122,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new UnfollowAccountCommand(User.GetAccountId(), accountId));
-            
+
             if (result.Success)
             {
                 return Ok();
             }
-            
+
             return BadRequest();
         }
 

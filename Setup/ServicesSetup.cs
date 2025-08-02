@@ -15,6 +15,7 @@ namespace YssWebstoreApi.Setup
             services.AddScoped<IImageStorage, ImageStorage>();
             services.AddScoped<IPostImageStorage, PostImageStorage>();
             services.AddScoped<IAvatarStorage, AvatarStorage>();
+            services.AddScoped<IProjectStorage, ProjectStorage>();
             return services;
         }
     }

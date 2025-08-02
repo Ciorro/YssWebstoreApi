@@ -57,10 +57,12 @@ namespace YssWebstoreApi.Features.Posts.Queries
                 SELECT
                     Projects.Id,
                     Projects.Name,
-                    Projects.Slug
+                    Projects.Slug,
+                    Resources.Path AS IconUrl
                 FROM 
                     Posts 
                     JOIN Projects ON Projects.Id = Posts.TargetProjectId
+                    LEFT JOIN Resources ON Resources.Id = Projects.IconResourceId
                 WHERE
                     Posts.Id = @PostId;
                 """, new { message.PostId });
@@ -76,6 +78,11 @@ namespace YssWebstoreApi.Features.Posts.Queries
 
             post.CoverImageUrl = _storage.GetUrl(post.CoverImageUrl!);
             post.Account.AvatarUrl = _storage.GetUrl(post.Account.AvatarUrl!);
+            
+            if (post.Project is not null)
+            {
+                post.Project.IconUrl = _storage.GetUrl(post.Project.IconUrl!);
+            }
 
             return post;
         }

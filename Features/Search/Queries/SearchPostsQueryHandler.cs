@@ -51,6 +51,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Projects.Id,
                     Projects.Name,
                     Projects.Slug,
+                    ProjectIcons.Path AS IconUrl,
                     Images.Path,
                     Avatar.Path
                 FROM 
@@ -58,6 +59,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                     INNER JOIN Ids ON Ids.Id = Posts.Id
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
                     LEFT JOIN Projects ON Projects.Id = Posts.TargetProjectId
+                    LEFT JOIN Resources ProjectIcons ON ProjectIcons.Id = Projects.IconResourceId
                     LEFT JOIN Resources Images ON Images.Id = Posts.ImageResourceId
                     LEFT JOIN Resources Avatar ON Avatar.Id = Accounts.AvatarResourceId
                 ORDER BY
@@ -68,6 +70,10 @@ namespace YssWebstoreApi.Features.Search.Queries
                     post.Account = account;
                     post.Account.AvatarUrl = _storage.GetUrl(avatarPath);
                     post.Project = project;
+                    if (project is not null)
+                    {
+                        post.Project.IconUrl = _storage.GetUrl(project.IconUrl!);
+                    }
                     post.CoverImageUrl = _storage.GetUrl(imgPath);
 
                     return post;

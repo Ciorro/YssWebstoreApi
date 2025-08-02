@@ -333,11 +333,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                        @{nameof(Resource.CreatedAt)},   
                        @{nameof(Resource.UpdatedAt)}, 
                        @{nameof(Resource.Path)}                    
-                    ) ON CONFLICT (Id) DO UPDATE
-                    SET Id = @{nameof(Resource.Id)},
-                        CreatedAt = @{nameof(Resource.CreatedAt)},
-                        UpdatedAt = @{nameof(Resource.UpdatedAt)},
-                        Path = @{nameof(Resource.Path)};
+                    );
 
                     UPDATE Accounts
                     SET

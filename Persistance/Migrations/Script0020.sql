@@ -1,0 +1,1 @@
+ALTER TABLE Projects ADD IconResourceId UUID REFERENCES Resources ON DELETE SET NULL;

@@ -45,13 +45,14 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Projects.Name,
                     Projects.Slug,
                     Projects.Description,
+                    Icons.Path AS IconUrl,
                     AVG(Reviews.Rate) AS Rating,
                     ARRAY_AGG(DISTINCT Tags.Tag) AS Tags,
                     Accounts.Id,
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
-                    Resources.Path AS AvatarUrl
+                    Avatars.Path AS AvatarUrl
                 FROM
                     Projects
                     INNER JOIN Ids ON Ids.Id = Projects.Id
@@ -59,11 +60,13 @@ namespace YssWebstoreApi.Features.Search.Queries
                     LEFT JOIN Reviews ON Reviews.ProjectId = Projects.Id
                     LEFT JOIN ProjectTags ON ProjectTags.ProjectId = Projects.Id
                     LEFT JOIN Tags ON Tags.Id = ProjectTags.TagId
-                    LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
+                    LEFT JOIN Resources Icons ON Icons.Id = Projects.IconResourceId
+                    LEFT JOIN Resources Avatars ON Avatars.Id = Accounts.AvatarResourceId                
                 GROUP BY
                     Projects.Id,
                     Accounts.Id,
-                    Resources.Id,
+                    Icons.Id,
+                    Avatars.Id,
                     Ids.Order
                 ORDER BY
                     Ids.Order
@@ -72,6 +75,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 {
                     project.Account = account;
                     project.Account.AvatarUrl = _storage.GetUrl(project.Account.AvatarUrl!);
+                    project.IconUrl = _storage.GetUrl(project.IconUrl!);
                     return project;
                 },
                 new

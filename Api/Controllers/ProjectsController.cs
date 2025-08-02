@@ -80,6 +80,34 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpPost("{projectId:Guid}/icon"), Authorize]
+        public async Task<IActionResult> UploadIcon(Guid projectId, IFormFile file)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UploadIconCommand(User.GetAccountId(), projectId, file));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+            
+            return BadRequest();
+        }
+
+        [HttpDelete("{projectId:Guid}/icon"), Authorize]
+        public async Task<IActionResult> DeleteIcon(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeleteIconCommand(User.GetAccountId(), projectId));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+           
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/pin"), Authorize]
         public async Task<IActionResult> PinProject(Guid projectId)
         {

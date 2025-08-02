@@ -4,17 +4,17 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class DeleteProjectReviewCommandHandler
-        : ICommandHandler<DeleteProjectReviewCommand, Result>
+    public class DeleteReviewCommandHandler
+        : ICommandHandler<DeleteReviewCommand, Result>
     {
         private readonly IReviewRepository _reviewRepository;
 
-        public DeleteProjectReviewCommandHandler(IReviewRepository reviewRepository)
+        public DeleteReviewCommandHandler(IReviewRepository reviewRepository)
         {
             _reviewRepository = reviewRepository;
         }
 
-        public async Task<Result> HandleAsync(DeleteProjectReviewCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result> HandleAsync(DeleteReviewCommand message, CancellationToken cancellationToken = default)
         {
             var review = await _reviewRepository.GetByProjectAndAccount(
                 message.ProjectId, message.AccountId);
