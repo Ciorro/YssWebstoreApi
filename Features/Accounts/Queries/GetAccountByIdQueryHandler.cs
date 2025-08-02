@@ -1,6 +1,7 @@
-﻿using LiteBus.Queries.Abstractions;
+﻿using Dapper;
+using LiteBus.Queries.Abstractions;
+using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
-using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
@@ -9,32 +10,56 @@ namespace YssWebstoreApi.Features.Accounts.Queries
     public class GetAccountByIdQueryHandler
         : IQueryHandler<GetAccountByIdQuery, Result<AccountResponse>>
     {
-        private readonly IAccountRepository _accountRepository;
+        private readonly IDbConnection _db;
         private readonly IStorage _storage;
 
-        public GetAccountByIdQueryHandler(IAccountRepository accountRepository, IStorage storage)
+        public GetAccountByIdQueryHandler(IDbConnection dbConnection, IStorage storage)
         {
-            _accountRepository = accountRepository;
+            _db = dbConnection;
             _storage = storage;
         }
 
         public async Task<Result<AccountResponse>> HandleAsync(GetAccountByIdQuery message, CancellationToken cancellationToken = default)
         {
-            var account = await _accountRepository.GetAsync(message.AccountId);
+            var account = await _db.QuerySingleOrDefaultAsync<AccountResponse>(
+                """
+                SELECT
+                    Accounts.Id,
+                    Accounts.CreatedAt,
+                    Accounts.UpdatedAt,
+                    Accounts.UniqueName,
+                    Accounts.DisplayName,
+                    Accounts.StatusText,
+                    Resources.Path AS AvatarUrl,
+                    COUNT(CASE WHEN AccountFollows.FollowerId = Accounts.Id THEN 1 END) AS FollowingCount,
+                    COUNT(CASE WHEN AccountFollows.FollowedId = Accounts.Id THEN 1 END) AS FollowersCount
+                FROM
+                    Accounts
+                    LEFT JOIN AccountFollows ON AccountFollows.FollowerId = Accounts.Id
+                                             OR AccountFollows.FollowedId = Accounts.Id
+                    LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
+                WHERE
+                    Accounts.Id = @AccountId
+                GROUP BY
+                    Accounts.Id,
+                    Resources.Id
+                """,
+                new
+                {
+                    message.AccountId
+                });
 
             if (account is null)
             {
                 return CommonErrors.ResourceNotFound;
             }
 
-            return new AccountResponse
+            if (!string.IsNullOrEmpty(account.AvatarUrl))
             {
-                Id = account.Id,
-                UniqueName = account.UniqueName,
-                DisplayName = account.DisplayName,
-                StatusText = account.StatusText,
-                AvatarUrl = _storage.GetUrl(account.Avatar?.Path!)
-            };
+                account.AvatarUrl = _storage.GetUrl(account.AvatarUrl);
+            }
+
+            return account;
         }
     }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE UserFollows RENAME TO AccountFollows;

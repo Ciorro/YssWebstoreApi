@@ -9,5 +9,8 @@ namespace YssWebstoreApi.Features.Accounts
 
         public static readonly Error AlreadyVerified =
             new Error(ErrorHelper.GetName(), "This account has already been verified.");
+
+        public static readonly Error FollowedSelf =
+            new Error(ErrorHelper.GetName(), "You cannot follow yourself.");
     }
 }
