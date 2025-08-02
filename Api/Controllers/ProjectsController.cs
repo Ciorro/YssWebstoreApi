@@ -108,6 +108,48 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpPost("{projectId:Guid}/images"), Authorize]
+        public async Task<IActionResult> UploadImage(Guid projectId, IFormFile file)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UploadImageCommand(User.GetAccountId(), projectId, file));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+            
+            return BadRequest();
+        }
+
+        [HttpDelete("{projectId:Guid}/images/{imageId:Guid}"), Authorize]
+        public async Task<IActionResult> DeleteImage(Guid projectId, Guid imageId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeleteImageCommand(User.GetAccountId(), projectId, imageId));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+            
+            return BadRequest();
+        }
+
+        [HttpPut("{projectId:Guid}/images/{imageId:Guid}/order"), Authorize]
+        public async Task<IActionResult> ReorderImage(Guid projectId, Guid imageId, [FromBody] int newOrder)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new ReorderImageCommand(User.GetAccountId(), projectId, imageId, newOrder));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+            
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/pin"), Authorize]
         public async Task<IActionResult> PinProject(Guid projectId)
         {

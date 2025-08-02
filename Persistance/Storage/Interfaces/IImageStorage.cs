@@ -4,6 +4,7 @@ namespace YssWebstoreApi.Persistance.Storage.Interfaces
 {
     public interface IImageStorage
     {
+        Task Upload(string path, IFormFile file, string format);
         Task Upload(string path, IFormFile file, ImageProperties properties);
     }
 }

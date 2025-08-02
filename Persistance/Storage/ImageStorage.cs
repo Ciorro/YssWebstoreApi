@@ -14,6 +14,15 @@ namespace YssWebstoreApi.Persistance.Storage
             _storage = storage;
         }
 
+        public async Task Upload(string path, IFormFile file, string targetFormat)
+        {
+            using var sourceBitmap = SKImage.FromEncodedData(file.OpenReadStream());
+            SKEncodedImageFormat format = GetFormatFromString(targetFormat);
+            SKData processedImageData = sourceBitmap.Encode(format, 100);
+
+            await _storage.Upload(path, processedImageData.ToArray());
+        }
+
         public async Task Upload(string path, IFormFile file, ImageProperties imageProperties)
         {
             using var sourceBitmap = SKImage.FromEncodedData(file.OpenReadStream());

@@ -26,5 +26,18 @@ namespace YssWebstoreApi.Persistance.Storage
             await _imageStorage.Upload(path, file, ImageProperties.AvatarImage);
             return path;
         }
+
+        public async Task<string> UploadImage(Guid projectId, IFormFile file)
+        {
+            string fileName = Guid.NewGuid().ToString() + ".jpg";
+
+            string path = PathHelper.UnixCombine(
+                Directory,
+                projectId.ToString(),
+                fileName);
+
+            await _imageStorage.Upload(path, file, "jpg");
+            return path;
+        }
     }
 }
