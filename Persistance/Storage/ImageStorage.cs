@@ -7,6 +7,7 @@ namespace YssWebstoreApi.Persistance.Storage
 {
     public class ImageStorage : IImageStorage
     {
+        const string ImagesBucketId = "images";
         private readonly IStorage _storage;
 
         public ImageStorage(IStorage storage)
@@ -14,16 +15,16 @@ namespace YssWebstoreApi.Persistance.Storage
             _storage = storage;
         }
 
-        public async Task Upload(string path, IFormFile file, string targetFormat)
+        public async Task<string?> Upload(string path, IFormFile file, string targetFormat)
         {
             using var sourceBitmap = SKImage.FromEncodedData(file.OpenReadStream());
             SKEncodedImageFormat format = GetFormatFromString(targetFormat);
             SKData processedImageData = sourceBitmap.Encode(format, 100);
 
-            await _storage.Upload(path, processedImageData.ToArray());
+            return await _storage.Upload(ImagesBucketId, path, processedImageData.ToArray());
         }
 
-        public async Task Upload(string path, IFormFile file, ImageProperties imageProperties)
+        public async Task<string?> Upload(string path, IFormFile file, ImageProperties imageProperties)
         {
             using var sourceBitmap = SKImage.FromEncodedData(file.OpenReadStream());
             using var processedBitmap = ResizeImage(
@@ -34,7 +35,12 @@ namespace YssWebstoreApi.Persistance.Storage
             SKEncodedImageFormat format = GetFormatFromString(imageProperties.Format);
             SKData processedImageData = processedBitmap.Encode(format, 100);
 
-            await _storage.Upload(path, processedImageData.ToArray());
+            return await _storage.Upload(ImagesBucketId, path, processedImageData.ToArray());
+        }
+
+        public async Task Delete(string path)
+        {
+            await _storage.Delete(ImagesBucketId, path);
         }
 
         private SKBitmap ResizeImage(SKImage image, int width, int height)

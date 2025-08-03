@@ -1,7 +1,9 @@
-﻿namespace YssWebstoreApi.Persistance.Storage.Interfaces
+﻿using YssWebstoreApi.Entities;
+
+namespace YssWebstoreApi.Persistance.Storage.Interfaces
 {
     public interface IPostImageStorage
     {
-        Task<string> UploadCoverImage(Guid postId, IFormFile file);
+        Task<Resource> UploadCoverImage(Guid postId, IFormFile file);
     }
 }

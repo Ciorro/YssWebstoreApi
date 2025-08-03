@@ -54,7 +54,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.Id,
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
-                    Resources.Path
+                    Resources.Path,
+                    Resources.PublicUrl
                 FROM 
                     Accounts JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 WHERE
@@ -327,12 +328,14 @@ namespace YssWebstoreApi.Persistance.Repositories
                         Id,
                         CreatedAt,
                         UpdatedAt,
-                        Path
+                        Path,
+                        PublicUrl
                     ) VALUES (
-                       @{nameof(Resource.Id)}, 
-                       @{nameof(Resource.CreatedAt)},   
-                       @{nameof(Resource.UpdatedAt)}, 
-                       @{nameof(Resource.Path)}                    
+                        @{nameof(Resource.Id)}, 
+                        @{nameof(Resource.CreatedAt)},   
+                        @{nameof(Resource.UpdatedAt)}, 
+                        @{nameof(Resource.Path)},
+                        @{nameof(Resource.PublicUrl)}
                     );
 
                     UPDATE Accounts
@@ -347,6 +350,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         entity.Avatar.CreatedAt,
                         entity.Avatar.UpdatedAt,
                         entity.Avatar.Path,
+                        entity.Avatar.PublicUrl,
                         AccountId = entity.Id
                     },
                     transaction);

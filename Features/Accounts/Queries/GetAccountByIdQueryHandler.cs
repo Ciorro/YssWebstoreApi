@@ -2,7 +2,6 @@
 using LiteBus.Queries.Abstractions;
 using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Queries
@@ -11,12 +10,10 @@ namespace YssWebstoreApi.Features.Accounts.Queries
         : IQueryHandler<GetAccountByIdQuery, Result<AccountResponse>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public GetAccountByIdQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public GetAccountByIdQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<AccountResponse>> HandleAsync(GetAccountByIdQuery message, CancellationToken cancellationToken = default)
@@ -30,7 +27,7 @@ namespace YssWebstoreApi.Features.Accounts.Queries
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
-                    Resources.Path AS AvatarUrl,
+                    Resources.PublicUrl AS AvatarUrl,
                     COUNT(CASE WHEN AccountFollows.FollowerId = Accounts.Id THEN 1 END) AS FollowingCount,
                     COUNT(CASE WHEN AccountFollows.FollowedId = Accounts.Id THEN 1 END) AS FollowersCount
                 FROM
@@ -52,11 +49,6 @@ namespace YssWebstoreApi.Features.Accounts.Queries
             if (account is null)
             {
                 return CommonErrors.ResourceNotFound;
-            }
-
-            if (!string.IsNullOrEmpty(account.AvatarUrl))
-            {
-                account.AvatarUrl = _storage.GetUrl(account.AvatarUrl);
             }
 
             return account;

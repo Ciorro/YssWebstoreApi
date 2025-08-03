@@ -11,13 +11,11 @@ namespace YssWebstoreApi.Features.Accounts.Commands
     {
         private readonly IRepository<Account> _accountRepository;
         private readonly IAvatarStorage _avatarStorage;
-        private readonly TimeProvider _timeProvider;
 
-        public UploadAvatarCommandHandler(IRepository<Account> accountRepository, IAvatarStorage avatarStorage, TimeProvider timeProvider)
+        public UploadAvatarCommandHandler(IRepository<Account> accountRepository, IAvatarStorage avatarStorage)
         {
             _accountRepository = accountRepository;
             _avatarStorage = avatarStorage;
-            _timeProvider = timeProvider;
         }
 
         public async Task<Result> HandleAsync(UploadAvatarCommand message, CancellationToken cancellationToken = default)
@@ -28,19 +26,9 @@ namespace YssWebstoreApi.Features.Accounts.Commands
                 return CommonErrors.ResourceNotFound;
             }
 
-            string? fileName = await _avatarStorage.UploadAvatar(
+            Resource avatarResource = await _avatarStorage.UploadAvatar(
                 message.AccountId, message.File);
-
-            var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
-            var id = Guid.CreateVersion7(creationTime);
-
-            account.Avatar = new Resource
-            {
-                Id = id,
-                CreatedAt = creationTime,
-                UpdatedAt = creationTime,
-                Path = fileName
-            };
+            account.Avatar = avatarResource;
 
             await _accountRepository.UpdateAsync(account);
             return Result.Ok();

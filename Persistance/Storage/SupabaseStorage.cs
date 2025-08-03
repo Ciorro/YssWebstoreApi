@@ -6,46 +6,66 @@ namespace YssWebstoreApi.Persistance.Storage
     {
         private readonly string _supabaseUrl;
         private readonly string _supabaseKey;
-        private readonly string _supabaseBucket;
 
         public SupabaseStorage(IConfiguration configuration, IHttpClientFactory httpClientFactory)
         {
             _supabaseUrl = configuration.GetValue<string>("Supabase:Url")!;
             _supabaseKey = configuration.GetValue<string>("Supabase:Key")!;
-            _supabaseBucket = configuration.GetValue<string>("Supabase:Bucket")!;
         }
 
-        public string? GetUrl(string path)
+        public async Task<string?> GetPublicUrl(string bucketId, string path)
         {
             if (string.IsNullOrWhiteSpace(path))
             {
                 return null;
             }
 
-            return Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
-                .From(_supabaseBucket)
-                .GetPublicUrl(path);
+            var bucket = await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
+                .GetBucket(bucketId);
+
+            if (bucket?.Public == true)
+            {
+                return Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
+                    .From(bucketId)
+                    .GetPublicUrl(path);
+            }
+
+            return null;
         }
 
-        public async Task Upload(string path, Stream stream)
+        public async Task<string?> GetPrivateUrl(string bucketId, string path, TimeSpan expiresIn)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return null;
+            }
+
+            return await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
+                .From(bucketId)
+                .CreateSignedUrl(path, (int)expiresIn.TotalSeconds);
+        }
+
+        public async Task<string?> Upload(string bucketId, string path, Stream stream)
         {
             using (var reader = new MemoryStream())
             {
                 await stream.CopyToAsync(reader);
 
                 await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
-                    .From(_supabaseBucket)
+                    .From(bucketId)
                     .Upload(reader.ToArray(), path.Replace('\\', '/'), options: new Supabase.Storage.FileOptions()
                     {
                         Upsert = true
                     });
+
+                return await GetPublicUrl(bucketId, path);
             }
         }
 
-        public async Task Delete(string path)
+        public async Task Delete(string bucketId, string path)
         {
             await Supabase.StatelessClient.Storage(_supabaseUrl, _supabaseKey)
-                .From(_supabaseBucket)
+                .From(bucketId)
                 .Remove(path.Replace('\\', '/'));
         }
     }

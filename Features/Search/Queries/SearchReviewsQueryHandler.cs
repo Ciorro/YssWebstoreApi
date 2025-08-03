@@ -2,10 +2,8 @@
 using LiteBus.Queries.Abstractions;
 using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
-using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -14,12 +12,10 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchReviewsQuery, Result<Page<ReviewResponse>>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public SearchReviewsQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public SearchReviewsQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<Page<ReviewResponse>>> HandleAsync(SearchReviewsQuery message, CancellationToken cancellationToken = default)
@@ -48,7 +44,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
-                    Resources.Path AS AvatarUrl
+                    Resources.PublicUrl AS AvatarUrl
                 FROM
                     Reviews
                     INNER JOIN Ids ON Ids.Id = Reviews.Id
@@ -60,7 +56,6 @@ namespace YssWebstoreApi.Features.Search.Queries
                 (review, account) =>
                 {
                     review.Account = account;
-                    review.Account.AvatarUrl = _storage.GetUrl(review.Account.AvatarUrl!);
                     return review;
                 },
                 new

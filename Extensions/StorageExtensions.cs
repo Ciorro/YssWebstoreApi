@@ -4,11 +4,11 @@ namespace YssWebstoreApi.Extensions
 {
     public static class StorageExtensions
     {
-        public static Task Upload(this IStorage storage, string path, byte[] data)
+        public static Task<string?> Upload(this IStorage storage, string bucketId, string path, byte[] data)
         {
             using (var ms = new MemoryStream(data))
             {
-                return storage.Upload(path, ms);
+                return storage.Upload(bucketId, path, ms);
             }
         }
     }

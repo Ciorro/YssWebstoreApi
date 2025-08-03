@@ -3,7 +3,6 @@ using LiteBus.Queries.Abstractions;
 using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Projects;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Queries
@@ -12,12 +11,10 @@ namespace YssWebstoreApi.Features.Projects.Queries
         : IQueryHandler<GetProjectBySlugQuery, Result<ProjectResponse>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public GetProjectBySlugQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public GetProjectBySlugQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<ProjectResponse>> HandleAsync(GetProjectBySlugQuery message, CancellationToken cancellationToken = default)
@@ -33,7 +30,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
                 	Projects.Name,
                 	Projects.Slug,
                 	Projects.Description,
-                    Resources.Path AS IconUrl
+                    Resources.PublicUrl AS IconUrl
                 FROM 
                     Projects LEFT JOIN Resources ON Resources.Id = Projects.IconResourceId
                 WHERE 
@@ -45,7 +42,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
                 	Accounts.UniqueName,
                 	Accounts.DisplayName,
                 	Accounts.StatusText,
-                    Resources.Path AS AvatarUrl
+                    Resources.PublicUrl AS AvatarUrl
                 FROM 
                     Accounts 
                     JOIN Projects ON Projects.AccountId = Accounts.Id
@@ -65,7 +62,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
 
                 -- Select images
                 SELECT
-                    Resources.Path
+                    Resources.PublicUrl
                 FROM 
                     Resources 
                     JOIN ProjectImages ON ProjectImages.Id = Resources.Id
@@ -81,16 +78,10 @@ namespace YssWebstoreApi.Features.Projects.Queries
             if (project is null)
                 return CommonErrors.ResourceNotFound;
 
-            project.IconUrl = _storage.GetUrl(project.IconUrl!);
             project.Account = await results.ReadSingleAsync<AccountResponse>();
-            project.Account.AvatarUrl = _storage.GetUrl(project.Account.AvatarUrl!);
 
             project.Tags = [.. await results.ReadAsync<string>()];
-
-            var imagePaths = (await results.ReadAsync<string>())
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Select(x => _storage.GetUrl(x)!);
-            project.Images = [.. imagePaths];
+            project.Images = [.. await results.ReadAsync<string>()];
 
             return project;
         }

@@ -81,7 +81,7 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> AttachImage(Guid postId, IFormFile file)
         {
             Result result = await _commandMediator.SendAsync(
-                new AttachImageToPostCommand(User.GetAccountId(), postId, file));
+                new UploadCoverImageCommand(User.GetAccountId(), postId, file));
 
             if (result.Success)
             {

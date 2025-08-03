@@ -12,13 +12,11 @@ namespace YssWebstoreApi.Features.Projects.Commands
     {
         private readonly IRepository<Project> _projectRepository;
         private readonly IProjectStorage _projectStorage;
-        private readonly TimeProvider _timeProvider;
 
-        public UploadIconCommandHandler(IRepository<Project> projectRepository, IProjectStorage projectStorage, TimeProvider timeProvider)
+        public UploadIconCommandHandler(IRepository<Project> projectRepository, IProjectStorage projectStorage)
         {
             _projectRepository = projectRepository;
             _projectStorage = projectStorage;
-            _timeProvider = timeProvider;
         }
 
         public async Task<Result> HandleAsync(UploadIconCommand message, CancellationToken cancellationToken = default)
@@ -34,19 +32,9 @@ namespace YssWebstoreApi.Features.Projects.Commands
                 return AuthErrors.AccessDenied;
             }
 
-            string path = await _projectStorage.UploadIcon(
+            Resource iconResource = await _projectStorage.UploadIcon(
                 message.ProjectId, message.Icon);
-
-            var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
-            var id = Guid.CreateVersion7(creationTime);
-
-            project.Icon = new Resource
-            {
-                Id = id,
-                CreatedAt = creationTime,
-                UpdatedAt = creationTime,
-                Path = path
-            };
+            project.Icon = iconResource;
 
             await _projectRepository.UpdateAsync(project);
             return Result.Ok();

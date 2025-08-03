@@ -11,12 +11,12 @@ namespace YssWebstoreApi.Features.Projects.Commands
         : ICommandHandler<DeleteIconCommand, Result>
     {
         private readonly IRepository<Project> _projectRepository;
-        private readonly IStorage _storage;
+        private readonly IImageStorage _imageStorage;
 
-        public DeleteIconCommandHandler(IRepository<Project> projectRepository, IStorage storage)
+        public DeleteIconCommandHandler(IRepository<Project> projectRepository, IImageStorage imageStorage)
         {
             _projectRepository = projectRepository;
-            _storage = storage;
+            _imageStorage = imageStorage;
         }
 
         public async Task<Result> HandleAsync(DeleteIconCommand message, CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
                 return AuthErrors.AccessDenied;
             }
 
-            await _storage.Delete(project.Icon.Path);
+            await _imageStorage.Delete(project.Icon.Path);
             project.Icon = null;
             await _projectRepository.UpdateAsync(project);
             return Result.Ok();

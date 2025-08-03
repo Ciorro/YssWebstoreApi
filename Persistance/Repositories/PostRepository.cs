@@ -30,7 +30,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.Id,
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
-                    Resources.Path
+                    Resources.Path,
+                    Resources.PublicUrl
                 FROM
                     Posts
                     INNER JOIN Accounts ON Accounts.Id = Posts.AccountId
@@ -98,14 +99,16 @@ namespace YssWebstoreApi.Persistance.Repositories
                         CreatedAt,
                         UpdatedAt,
                         Path,
-                        Size
+                        PublicUrl
                     ) VALUES (
-                       @{nameof(Resource.Id)}, 
-                       @{nameof(Resource.CreatedAt)},   
-                       @{nameof(Resource.UpdatedAt)}, 
-                       @{nameof(Resource.Path)}                  
+                        @{nameof(Resource.Id)}, 
+                        @{nameof(Resource.CreatedAt)},   
+                        @{nameof(Resource.UpdatedAt)}, 
+                        @{nameof(Resource.Path)},
+                        @{nameof(Resource.PublicUrl)}
                     )
-                    """);
+                    """, 
+                    entity.Image, transaction);
             }
 
             transaction.Commit();
@@ -123,7 +126,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         WHERE Posts.Id = @Id
                           AND Resources.Id = Posts.ImageResourceId
                     """,
-                    new { entity.Id });
+                    new { entity.Id }, transaction);
             }
             else
             {
@@ -133,18 +136,22 @@ namespace YssWebstoreApi.Persistance.Repositories
                         Id,
                         CreatedAt,
                         UpdatedAt,
-                        Path
+                        Path,
+                        PublicUrl
                     ) VALUES (
-                       @{nameof(Resource.Id)}, 
-                       @{nameof(Resource.CreatedAt)},   
-                       @{nameof(Resource.UpdatedAt)}, 
-                       @{nameof(Resource.Path)}                    
+                        @{nameof(Resource.Id)}, 
+                        @{nameof(Resource.CreatedAt)},   
+                        @{nameof(Resource.UpdatedAt)}, 
+                        @{nameof(Resource.Path)},
+                        @{nameof(Resource.PublicUrl)}
                     ) ON CONFLICT (Id) DO UPDATE
                     SET Id = @{nameof(Resource.Id)},
                         CreatedAt = @{nameof(Resource.CreatedAt)},
                         UpdatedAt = @{nameof(Resource.UpdatedAt)},
-                        Path = @{nameof(Resource.Path)}
-                    """, entity.Image);
+                        Path = @{nameof(Resource.Path)},
+                        PublicUrl = @{nameof(Resource.PublicUrl)}
+                    """, 
+                    entity.Image, transaction);
             }
 
             await _db.ExecuteAsync(
@@ -171,7 +178,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     entity.Content,
                     entity.TargetProjectId,
                     ImageResourceId = entity.Image?.Id
-                });
+                }, transaction);
 
             transaction.Commit();
         }

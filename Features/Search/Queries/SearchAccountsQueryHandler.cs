@@ -2,9 +2,7 @@
 using LiteBus.Queries.Abstractions;
 using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
-using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -13,12 +11,10 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchAccountsQuery, Result<Page<AccountResponse>>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public SearchAccountsQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public SearchAccountsQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<Page<AccountResponse>>> HandleAsync(SearchAccountsQuery message, CancellationToken cancellationToken = default)
@@ -44,7 +40,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
-                    Resources.Path AS AvatarUrl
+                    Resources.PublicUrl AS AvatarUrl
                 FROM
                     Accounts 
                     INNER JOIN Ids ON Ids.Id = Accounts.Id
@@ -56,11 +52,6 @@ namespace YssWebstoreApi.Features.Search.Queries
                 {
                     Ids = limitedResultsIds
                 });
-
-            foreach (var account in results)
-            {
-                account.AvatarUrl = _storage.GetUrl(account.AvatarUrl!);
-            }
 
             return new Page<AccountResponse>(
                 pageNumber: message.PageOptions.PageNumber,

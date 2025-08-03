@@ -2,8 +2,9 @@
 {
     public interface IStorage
     {
-        string? GetUrl(string path);
-        Task Upload(string path, Stream stream);
-        Task Delete(string path);
+        Task<string?> GetPublicUrl(string bucketId, string path);
+        Task<string?> GetPrivateUrl(string bucketId, string path, TimeSpan expiresIn);
+        Task<string?> Upload(string bucketId, string path, Stream stream);
+        Task Delete(string bucketId, string path);
     }
 }

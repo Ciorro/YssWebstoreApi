@@ -10,12 +10,12 @@ namespace YssWebstoreApi.Features.Accounts.Commands
         : ICommandHandler<DeleteAvatarCommand, Result>
     {
         private readonly IRepository<Account> _accountRepository;
-        private readonly IStorage _storage;
+        private readonly IImageStorage _imageStorage;
 
-        public DeleteAvatarCommandHandler(IRepository<Account> accountRepository, IStorage storage)
+        public DeleteAvatarCommandHandler(IRepository<Account> accountRepository, IImageStorage imageStorage)
         {
             _accountRepository = accountRepository;
-            _storage = storage;
+            _imageStorage = imageStorage;
         }
 
         public async Task<Result> HandleAsync(DeleteAvatarCommand message, CancellationToken cancellationToken = default)
@@ -26,7 +26,7 @@ namespace YssWebstoreApi.Features.Accounts.Commands
                 return CommonErrors.ResourceNotFound;
             }
 
-            await _storage.Delete(account.Avatar.Path);
+            await _imageStorage.Delete(account.Avatar.Path);
             account.Avatar = null;
             await _accountRepository.UpdateAsync(account);
             return Result.Ok();

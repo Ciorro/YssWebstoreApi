@@ -7,33 +7,35 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Commands
 {
-    public class RemoveImageFromPostCommandHandler
-        : ICommandHandler<RemoveImageFromPostCommand, Result>
+    public class UploadCoverImageCommandHandler
+        : ICommandHandler<UploadCoverImageCommand, Result>
     {
         private readonly IRepository<Post> _postRepository;
-        private readonly IImageStorage _imageStorage;
+        private readonly IPostImageStorage _postImageStorage;
 
-        public RemoveImageFromPostCommandHandler(IRepository<Post> postRepository, IImageStorage imageStorage)
+        public UploadCoverImageCommandHandler(IRepository<Post> postRepository, IPostImageStorage postImageStorage)
         {
             _postRepository = postRepository;
-            _imageStorage = imageStorage;
+            _postImageStorage = postImageStorage;
         }
 
-        public async Task<Result> HandleAsync(RemoveImageFromPostCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result> HandleAsync(UploadCoverImageCommand message, CancellationToken cancellationToken = default)
         {
             var post = await _postRepository.GetAsync(message.PostId);
 
-            if (post is null || post.Image is null)
+            if (post is null)
             {
                 return CommonErrors.ResourceNotFound;
             }
-            if (post.AccountId != message.AccountId)
+            if (message.AccountId != post.AccountId)
             {
                 return AuthErrors.AccessDenied;
             }
 
-            await _imageStorage.Delete(post.Image.Path);
-            post.Image = null;
+            Resource imageResource = await _postImageStorage.UploadCoverImage(
+                post.Id, message.File);
+            post.Image = imageResource;
+
             await _postRepository.UpdateAsync(post);
             return Result.Ok();
         }

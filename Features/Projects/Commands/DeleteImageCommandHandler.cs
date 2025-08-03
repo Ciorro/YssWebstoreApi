@@ -11,12 +11,12 @@ namespace YssWebstoreApi.Features.Projects.Commands
         : ICommandHandler<DeleteImageCommand, Result>
     {
         private readonly IRepository<Project> _projectRepository;
-        private readonly IStorage _storage;
+        private readonly IImageStorage _imageStorage;
 
-        public DeleteImageCommandHandler(IRepository<Project> projectRepository, IStorage storage)
+        public DeleteImageCommandHandler(IRepository<Project> projectRepository, IImageStorage imageStorage)
         {
             _projectRepository = projectRepository;
-            _storage = storage;
+            _imageStorage = imageStorage;
         }
 
         public async Task<Result> HandleAsync(DeleteImageCommand message, CancellationToken cancellationToken = default)
@@ -40,7 +40,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
                 return CommonErrors.ResourceNotFound;
             }
 
-            await _storage.Delete(imageToDelete.Path);
+            await _imageStorage.Delete(imageToDelete.Path);
             project.Images.Remove(imageToDelete);
             await _projectRepository.UpdateAsync(project);
             return Result.Ok();

@@ -5,7 +5,6 @@ using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
@@ -14,12 +13,10 @@ namespace YssWebstoreApi.Features.Search.Queries
         : IQueryHandler<SearchPostsQuery, Result<Page<PostResponse>>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public SearchPostsQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public SearchPostsQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<Page<PostResponse>>> HandleAsync(SearchPostsQuery message, CancellationToken cancellationToken = default)
@@ -29,7 +26,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 .Skip(message.PageOptions.GetOffset())
                 .Take(message.PageOptions.PageSize);
 
-            var results = await _db.QueryAsync<PostResponse, AccountResponse, ProjectLinkResponse, string, string, PostResponse>(
+            var results = await _db.QueryAsync<PostResponse, AccountResponse, ProjectLinkResponse, PostResponse>(
                 """
                 WITH Ids AS (
                     SELECT
@@ -44,16 +41,16 @@ namespace YssWebstoreApi.Features.Search.Queries
                     Posts.UpdatedAt,
                     Posts.Title,
                     Posts.Content,
+                    Images.PublicUrl AS CoverImageUrl,
                     Accounts.Id,
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
+                    Avatar.PublicUrl AS AvatarUrl,
                     Projects.Id,
                     Projects.Name,
                     Projects.Slug,
-                    ProjectIcons.Path AS IconUrl,
-                    Images.Path,
-                    Avatar.Path
+                    ProjectIcons.PublicUrl AS IconUrl
                 FROM 
                     Posts
                     INNER JOIN Ids ON Ids.Id = Posts.Id
@@ -65,24 +62,17 @@ namespace YssWebstoreApi.Features.Search.Queries
                 ORDER BY
                     Ids.Order
                 """,
-                (post, account, project, imgPath, avatarPath) =>
+                (post, account, project) =>
                 {
                     post.Account = account;
-                    post.Account.AvatarUrl = _storage.GetUrl(avatarPath);
                     post.Project = project;
-                    if (project is not null)
-                    {
-                        post.Project.IconUrl = _storage.GetUrl(project.IconUrl!);
-                    }
-                    post.CoverImageUrl = _storage.GetUrl(imgPath);
 
                     return post;
                 },
                 new
                 {
                     Ids = limitedResultsIds
-                },
-                splitOn: "Id,,Id,Id,Path,Path");
+                });
 
             return new Page<PostResponse>(
                 pageNumber: message.PageOptions.PageNumber,

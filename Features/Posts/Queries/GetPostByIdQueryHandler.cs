@@ -4,7 +4,6 @@ using System.Data;
 using YssWebstoreApi.Api.DTO.Accounts;
 using YssWebstoreApi.Api.DTO.Posts;
 using YssWebstoreApi.Api.DTO.Projects;
-using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Queries
@@ -13,12 +12,10 @@ namespace YssWebstoreApi.Features.Posts.Queries
         : IQueryHandler<GetPostByIdQuery, Result<PostResponse>>
     {
         private readonly IDbConnection _db;
-        private readonly IStorage _storage;
 
-        public GetPostByIdQueryHandler(IDbConnection dbConnection, IStorage storage)
+        public GetPostByIdQueryHandler(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _storage = storage;
         }
 
         public async Task<Result<PostResponse>> HandleAsync(GetPostByIdQuery message, CancellationToken cancellationToken = default)
@@ -32,7 +29,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
                     Posts.UpdatedAt,
                     Posts.Title,
                     Posts.Content,
-                    Resources.Path AS CoverImageUrl
+                    Resources.PublicUrl AS CoverImageUrl
                 FROM 
                     Posts 
                     LEFT JOIN Resources ON Resources.Id = Posts.ImageResourceId
@@ -45,7 +42,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
                     Accounts.UniqueName,
                     Accounts.DisplayName,
                     Accounts.StatusText,
-                    Resources.Path AS AvatarUrl
+                    Resources.PublicUrl AS AvatarUrl
                 FROM 
                     Accounts 
                     JOIN Posts ON Posts.AccountId = Accounts.Id
@@ -58,7 +55,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
                     Projects.Id,
                     Projects.Name,
                     Projects.Slug,
-                    Resources.Path AS IconUrl
+                    Resources.PublicUrl AS IconUrl
                 FROM 
                     Posts 
                     JOIN Projects ON Projects.Id = Posts.TargetProjectId
@@ -75,14 +72,6 @@ namespace YssWebstoreApi.Features.Posts.Queries
 
             post.Account = await results.ReadSingleAsync<AccountResponse>();
             post.Project = await results.ReadSingleOrDefaultAsync<ProjectLinkResponse>();
-
-            post.CoverImageUrl = _storage.GetUrl(post.CoverImageUrl!);
-            post.Account.AvatarUrl = _storage.GetUrl(post.Account.AvatarUrl!);
-            
-            if (post.Project is not null)
-            {
-                post.Project.IconUrl = _storage.GetUrl(post.Project.IconUrl!);
-            }
 
             return post;
         }

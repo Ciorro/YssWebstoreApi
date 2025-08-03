@@ -46,7 +46,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.Id,
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
-                    Resources.Path
+                    Resources.Path,
+                    Resources.PublicUrl
                 FROM
                     Resources JOIN Projects ON Projects.IconResourceId = Resources.Id
                 WHERE
@@ -57,7 +58,8 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.Id,
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
-                    Resources.Path
+                    Resources.Path,
+                    Resources.PublicUrl
                 FROM 
                     Resources JOIN ProjectImages ON ProjectImages.Id = Resources.Id
                 WHERE
@@ -71,6 +73,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Resources.CreatedAt,
                     Resources.UpdatedAt,
                     Resources.Path,
+                    Resources.PublicUrl,
                     Packages.Name,
                     Packages.Version,
                     Packages.TargetOS,
@@ -260,12 +263,14 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Id,
                     CreatedAt,
                     UpdatedAt,
-                    Path
+                    Path,
+                    PublicUrl
                 ) VALUES (
                     @{nameof(Resource.Id)},
                     @{nameof(Resource.CreatedAt)},
                     @{nameof(Resource.UpdatedAt)},
-                    @{nameof(Resource.Path)}
+                    @{nameof(Resource.Path)},
+                    @{nameof(Resource.PublicUrl)}
                 );
                 
                 UPDATE Projects
@@ -280,6 +285,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     entity.Icon.CreatedAt,
                     entity.Icon.UpdatedAt,
                     entity.Icon.Path,
+                    entity.Icon.PublicUrl,
                     ProjectId = entity.Id
                 },
                 transaction);
@@ -319,12 +325,14 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Id,
                     CreatedAt,
                     UpdatedAt,
-                    Path
+                    Path,
+                    PublicUrl
                 ) VALUES (
                     @{nameof(Resource.Id)},
                     @{nameof(Resource.CreatedAt)},
                     @{nameof(Resource.UpdatedAt)},
-                    @{nameof(Resource.Path)}
+                    @{nameof(Resource.Path)},
+                    @{nameof(Resource.PublicUrl)}
                 );
 
                 -- Insert all project images relations
@@ -345,6 +353,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         CreatedAt = x.CreatedAt,
                         UpdatedAt = x.UpdatedAt,
                         Path = x.Path,
+                        PublicUrl = x.PublicUrl,
                         ProjectId = entity.Id,
                         ImageOrder = i
                     }),
@@ -385,12 +394,14 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Id,
                     CreatedAt,
                     UpdatedAt,
-                    Path
+                    Path,
+                    PublicUrl
                 ) VALUES (
                     @{nameof(Resource.Id)},
                     @{nameof(Resource.CreatedAt)},
                     @{nameof(Resource.UpdatedAt)},
-                    @{nameof(Resource.Path)}
+                    @{nameof(Resource.Path)},
+                    @{nameof(Resource.PublicUrl)}
                 );
 
                 -- Insert all project images relations
@@ -417,6 +428,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         CreatedAt = x.CreatedAt,
                         UpdatedAt = x.UpdatedAt,
                         Path = x.Path,
+                        PublicUrl = x.PublicUrl,
                         ProjectId = entity.Id,
                         Name = x.Name,
                         Version = x.Version,
