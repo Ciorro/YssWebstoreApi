@@ -1,5 +1,4 @@
 ﻿using LiteBus.Commands.Abstractions;
-using System.Windows.Input;
 using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands

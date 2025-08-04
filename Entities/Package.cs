@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using YssWebstoreApi.Entities.Interfaces;
+﻿using YssWebstoreApi.Entities.Interfaces;
 
 namespace YssWebstoreApi.Entities
 {

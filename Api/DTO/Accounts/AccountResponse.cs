@@ -9,10 +9,10 @@ namespace YssWebstoreApi.Api.DTO.Accounts
         public required string DisplayName { get; set; }
         public string? StatusText { get; set; }
         public string? AvatarUrl { get; set; }
-        
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? FollowersCount { get; set; }
-       
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? FollowingCount { get; set; }
     }

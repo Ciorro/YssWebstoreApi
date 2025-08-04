@@ -6,7 +6,7 @@ namespace YssWebstoreApi.Entities.Tags
     {
         private readonly HashSet<Tag> _tags = new HashSet<Tag>();
 
-        public TagCollection() 
+        public TagCollection()
         { }
 
         public TagCollection(IEnumerable<Tag> tags)
@@ -53,7 +53,7 @@ namespace YssWebstoreApi.Entities.Tags
         public IEnumerable<string> GetValuesFromGroup(string tagGroup)
             => _tags.Where(x => x.Group == tagGroup).Select(x => x.Value);
 
-        public int RemoveGroup(string tagGroup) 
+        public int RemoveGroup(string tagGroup)
             => _tags.RemoveWhere(x => x.Group == tagGroup);
 
         public void AddValuesToGroup(string tagGroup, params IEnumerable<string> values)

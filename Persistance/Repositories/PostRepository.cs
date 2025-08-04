@@ -106,7 +106,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         @{nameof(Resource.Path)},
                         @{nameof(Resource.PublicUrl)}
                     )
-                    """, 
+                    """,
                     entity.Image, transaction);
             }
 
@@ -149,7 +149,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                         UpdatedAt = @{nameof(Resource.UpdatedAt)},
                         Path = @{nameof(Resource.Path)},
                         PublicUrl = @{nameof(Resource.PublicUrl)}
-                    """, 
+                    """,
                     entity.Image, transaction);
             }
 
@@ -166,7 +166,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                     TargetProjectId = @{nameof(Post.TargetProjectId)}
                 WHERE
                     Id = @{nameof(Post.Id)}
-                """, 
+                """,
                 new
                 {
                     entity.Id,

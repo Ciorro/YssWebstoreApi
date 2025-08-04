@@ -25,8 +25,8 @@ namespace YssWebstoreApi.Features.Projects.Queries
             }
 
             return project.Packages.Select(
-                x => new PackageResponse 
-                { 
+                x => new PackageResponse
+                {
                     Name = x.Name,
                     Version = x.Version,
                     TargetOS = x.TargetOS,

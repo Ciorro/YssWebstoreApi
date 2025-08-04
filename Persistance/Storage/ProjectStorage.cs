@@ -32,7 +32,7 @@ namespace YssWebstoreApi.Persistance.Storage
                 IconFileName);
 
             string? url = await _imageStorage.Upload(path, file, ImageProperties.AvatarImage);
-            
+
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
             var id = Guid.CreateVersion7(creationTime);
 

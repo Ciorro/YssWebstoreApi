@@ -1,6 +1,4 @@
-﻿using YssWebstoreApi.Entities;
-
-namespace YssWebstoreApi.Api.DTO.Packages
+﻿namespace YssWebstoreApi.Api.DTO.Packages
 {
     public class UploadPackageRequest
     {

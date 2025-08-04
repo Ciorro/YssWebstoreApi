@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
-using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Projects.Commands;
 using YssWebstoreApi.Features.Projects.Queries;

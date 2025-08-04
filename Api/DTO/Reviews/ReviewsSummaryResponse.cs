@@ -42,8 +42,8 @@
                     _rates.TryGetValue(i, out int count);
 
                     yield return new RateCount(
-                        rate: i, 
-                        count: count, 
+                        rate: i,
+                        count: count,
                         share: count / (float)TotalCount);
                 }
             }

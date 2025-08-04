@@ -22,7 +22,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
         public async Task<Result> HandleAsync(DeleteIconCommand message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
-            
+
             if (project is null || project.Icon is null)
             {
                 return CommonErrors.ResourceNotFound;

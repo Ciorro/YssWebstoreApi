@@ -5,7 +5,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Commands
 {
-    public class CreatePostCommandHandler 
+    public class CreatePostCommandHandler
         : ICommandHandler<CreatePostCommand, Result<Guid>>
     {
         private readonly IRepository<Post> _postRepository;

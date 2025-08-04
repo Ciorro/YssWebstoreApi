@@ -1,6 +1,4 @@
-﻿using YssWebstoreApi.Entities.Tags;
-
-namespace YssWebstoreApi.Api.DTO.Projects
+﻿namespace YssWebstoreApi.Api.DTO.Projects
 {
     public class CreateProjectRequest
     {

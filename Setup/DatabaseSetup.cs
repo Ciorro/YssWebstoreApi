@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using Npgsql;
 using YssWebstoreApi.Persistance;
 using YssWebstoreApi.Persistance.TypeHandlers;
 

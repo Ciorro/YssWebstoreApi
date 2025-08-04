@@ -93,7 +93,7 @@ namespace YssWebstoreApi.Persistance.Repositories
             if (project is null)
                 return null;
 
-            project.Tags = new ([.. await results.ReadAsync<string>()]);
+            project.Tags = new([.. await results.ReadAsync<string>()]);
             project.Icon = await results.ReadSingleOrDefaultAsync<Resource>();
             project.Images = [.. await results.ReadAsync<Resource>()];
             project.Packages = [.. await results.ReadAsync<Package>()];

@@ -70,7 +70,7 @@ namespace YssWebstoreApi.Api.Controllers
             Result<Guid> result = await _commandMediator.SendAsync(
                 new CreateProjectCommand(User.GetAccountId(), request.Name, request.Description)
                 {
-                    Tags = new( request.Tags)
+                    Tags = new(request.Tags)
                 });
 
             if (result.TryGetValue(out var value))
@@ -86,12 +86,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new UploadIconCommand(User.GetAccountId(), projectId, file));
-            
+
             if (result.Success)
             {
                 return NoContent();
             }
-            
+
             return BadRequest();
         }
 
@@ -100,12 +100,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteIconCommand(User.GetAccountId(), projectId));
-            
+
             if (result.Success)
             {
                 return NoContent();
             }
-           
+
             return BadRequest();
         }
 
@@ -114,12 +114,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new UploadImageCommand(User.GetAccountId(), projectId, file));
-            
+
             if (result.Success)
             {
                 return NoContent();
             }
-            
+
             return BadRequest();
         }
 
@@ -128,12 +128,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteImageCommand(User.GetAccountId(), projectId, imageId));
-            
+
             if (result.Success)
             {
                 return NoContent();
             }
-            
+
             return BadRequest();
         }
 
@@ -142,12 +142,12 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new ReorderImageCommand(User.GetAccountId(), projectId, imageId, newOrder));
-            
+
             if (result.Success)
             {
                 return NoContent();
             }
-            
+
             return BadRequest();
         }
 
@@ -178,7 +178,7 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new DeletePackageCommand(User.GetAccountId(), projectId, packageId));
-            
+
             if (result.Success)
             {
                 return NoContent();

@@ -40,7 +40,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
 
             Resource packageResource = await _projectStorage.UploadPackage(
                 message.ProjectId, packageInfo, message.File);
-            
+
             var package = new Package
             {
                 Id = packageResource.Id,
