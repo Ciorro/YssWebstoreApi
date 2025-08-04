@@ -99,7 +99,7 @@ namespace YssWebstoreApi.Api.Controllers
 
             if (result.Success)
             {
-                return Ok();
+                return NoContent();
             }
 
             return BadRequest();

@@ -97,7 +97,7 @@ namespace YssWebstoreApi.Api.Controllers
 
             if (result.Success)
             {
-                return Ok();
+                return NoContent();
             }
 
             return BadRequest();
@@ -111,7 +111,7 @@ namespace YssWebstoreApi.Api.Controllers
 
             if (result.Success)
             {
-                return Ok();
+                return NoContent();
             }
 
             return BadRequest();
@@ -125,7 +125,7 @@ namespace YssWebstoreApi.Api.Controllers
 
             if (result.Success)
             {
-                return Ok();
+                return NoContent();
             }
 
             return BadRequest();
@@ -138,7 +138,7 @@ namespace YssWebstoreApi.Api.Controllers
                 new VerifyAccountCommand(User.GetAccountId(), verificationCode));
 
             return result.Success ?
-                Ok() : BadRequest();
+                NoContent() : BadRequest();
         }
 
         [HttpPost("generate-verification-code"), Authorize, AllowUnverified]
@@ -148,7 +148,7 @@ namespace YssWebstoreApi.Api.Controllers
                 new CreateVerificationCodeCommand(User.GetAccountId()));
 
             return result.Success ?
-                Ok() : BadRequest();
+                NoContent() : BadRequest();
         }
     }
 }
