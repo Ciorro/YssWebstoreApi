@@ -12,7 +12,6 @@ namespace YssWebstoreApi.Persistance.Repositories
         public AccountRepository(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _db.Open();
         }
 
         public async Task<Account?> GetAsync(Guid id)

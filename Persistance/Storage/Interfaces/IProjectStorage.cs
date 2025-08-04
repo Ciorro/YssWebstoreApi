@@ -1,4 +1,5 @@
 ﻿using YssWebstoreApi.Entities;
+using YssWebstoreApi.Persistance.Storage.Packages;
 
 namespace YssWebstoreApi.Persistance.Storage.Interfaces
 {
@@ -6,5 +7,7 @@ namespace YssWebstoreApi.Persistance.Storage.Interfaces
     {
         Task<Resource> UploadIcon(Guid projectId, IFormFile file);
         Task<Resource> UploadImage(Guid projectId, IFormFile file);
+        Task<Resource> UploadPackage(Guid projectId, PackageInfo packageInfo, IFormFile file);
+        Task DeletePackage(string path);
     }
 }

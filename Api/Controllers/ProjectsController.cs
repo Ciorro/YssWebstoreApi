@@ -150,6 +150,62 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpPost("{projectId:Guid}/packages"), Authorize]
+        public async Task<IActionResult> UploadPackage(Guid projectId, UploadPackageRequest request)
+        {
+            Result<Guid> result = await _commandMediator.SendAsync(
+                new UploadPackageCommand
+                {
+                    AccountId = User.GetAccountId(),
+                    ProjectId = projectId,
+                    Name = request.Name,
+                    Version = request.Version,
+                    File = request.File,
+                    TargetOS = request.TargetOS
+                });
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{projectId:Guid}/packages/{packageId:Guid}"), Authorize]
+        public async Task<IActionResult> DeletePackage(Guid projectId, Guid packageId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeletePackageCommand(User.GetAccountId(), projectId, packageId));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
+        [HttpPut("{projectId:Guid}/packages/{packageId:Guid}"), Authorize]
+        public async Task<IActionResult> UpdatePackage(Guid projectId, Guid packageId, UpdatePackageRequest request)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UpdatePackageCommand
+                {
+                    AccountId = User.GetAccountId(),
+                    ProjectId = projectId,
+                    PackageId = packageId,
+                    Name = request.Name
+                });
+
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/pin"), Authorize]
         public async Task<IActionResult> PinProject(Guid projectId)
         {

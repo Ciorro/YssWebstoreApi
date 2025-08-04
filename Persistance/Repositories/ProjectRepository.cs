@@ -1,6 +1,7 @@
 ﻿using Dapper;
 using System.Data;
 using YssWebstoreApi.Entities;
+using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Repositories
@@ -8,11 +9,12 @@ namespace YssWebstoreApi.Persistance.Repositories
     public class ProjectRepository : IRepository<Project>
     {
         private readonly IDbConnection _db;
+        private readonly TimeProvider _timeProvider;
 
-        public ProjectRepository(IDbConnection dbConnection)
+        public ProjectRepository(IDbConnection dbConnection, TimeProvider timeProvider)
         {
             _db = dbConnection;
-            _db.Open();
+            _timeProvider = timeProvider;
         }
 
         public async Task<Project?> GetAsync(Guid id)
@@ -34,7 +36,6 @@ namespace YssWebstoreApi.Persistance.Repositories
 
                 -- Select project tags
                 SELECT
-                    Tags.Id,
                     Tags.Tag
                 FROM 
                     Tags JOIN ProjectTags ON ProjectTags.TagId = Tags.Id
@@ -92,7 +93,7 @@ namespace YssWebstoreApi.Persistance.Repositories
             if (project is null)
                 return null;
 
-            project.Tags = [.. await results.ReadAsync<TagEntity>()];
+            project.Tags = new ([.. await results.ReadAsync<string>()]);
             project.Icon = await results.ReadSingleOrDefaultAsync<Resource>();
             project.Images = [.. await results.ReadAsync<Resource>()];
             project.Packages = [.. await results.ReadAsync<Package>()];
@@ -200,6 +201,33 @@ namespace YssWebstoreApi.Persistance.Repositories
 
         private async Task InsertTags(Project entity, IDbTransaction transaction)
         {
+            var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
+
+            await _db.ExecuteAsync(
+                """
+                -- Insert all tags
+                INSERT INTO Tags (
+                    Id,
+                    CreatedAt,
+                    UpdatedAt,
+                    Tag
+                ) VALUES (
+                    @Id,
+                    @CreatedAt,
+                    @UpdatedAt,
+                    @Tag
+                ) ON CONFLICT (Tag) DO NOTHING;
+                """,
+                entity.Tags.Select(
+                    x => new
+                    {
+                        Id = Guid.CreateVersion7(creationTime),
+                        CreatedAt = creationTime,
+                        UpdatedAt = creationTime,
+                        Tag = x.ToString()
+                    }),
+                transaction);
+
             await _db.ExecuteAsync(
                 """
                 -- Insert all tag relations
@@ -207,19 +235,21 @@ namespace YssWebstoreApi.Persistance.Repositories
                     Id,
                     ProjectId,
                     TagId
-                ) VALUES (
-                    @Id,
-                    @ProjectId,
-                    @TagId
-                );
+                )
+                SELECT
+                    gen_random_uuid() AS Id,
+                    @ProjectId AS ProjectId,
+                    Tags.Id
+                FROM
+                    Tags
+                WHERE
+                    Tags.Tag = ANY(@Tags);
                 """,
-                entity.Tags.Select(
-                    x => new
-                    {
-                        Id = Guid.CreateVersion7(),
-                        ProjectId = entity.Id,
-                        TagId = x.Id
-                    }),
+                new
+                {
+                    ProjectId = entity.Id,
+                    Tags = entity.Tags.ToStringList()
+                },
                 transaction);
         }
 

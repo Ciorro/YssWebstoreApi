@@ -46,7 +46,13 @@ namespace YssWebstoreApi
             builder.Services.AddTransient<IDatabaseInitializer>(
                 _ => new DatabaseInitializer(config.GetConnectionString("DefaultConnection")!));
             builder.Services.AddScoped<IDbConnection>(
-                _ => new NpgsqlConnection(config.GetConnectionString("DefaultConnection")!));
+                _ =>
+                {
+                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                        config.GetConnectionString("DefaultConnection")!);
+                    var dataSource = dataSourceBuilder.Build();
+                    return dataSource.OpenConnection();
+                });
 
             builder.Services.AddCors();
             builder.Services.AddHttpClient();

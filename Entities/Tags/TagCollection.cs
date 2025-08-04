@@ -52,5 +52,16 @@ namespace YssWebstoreApi.Entities.Tags
 
         public IEnumerable<string> GetValuesFromGroup(string tagGroup)
             => _tags.Where(x => x.Group == tagGroup).Select(x => x.Value);
+
+        public int RemoveGroup(string tagGroup) 
+            => _tags.RemoveWhere(x => x.Group == tagGroup);
+
+        public void AddValuesToGroup(string tagGroup, params IEnumerable<string> values)
+        {
+            foreach (var value in values)
+            {
+                _tags.Add(new Tag(tagGroup, value));
+            }
+        }
     }
 }

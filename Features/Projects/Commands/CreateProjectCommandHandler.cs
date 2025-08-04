@@ -10,21 +10,17 @@ namespace YssWebstoreApi.Features.Projects.Commands
         : ICommandHandler<CreateProjectCommand, Result<Guid>>
     {
         private readonly IRepository<Project> _projectRepository;
-        private readonly ITagRepository _tagRepository;
         private readonly TimeProvider _timeProvider;
 
-        public CreateProjectCommandHandler(IRepository<Project> projectRepository, ITagRepository tagRepository, TimeProvider timeProvider)
+        public CreateProjectCommandHandler(IRepository<Project> projectRepository, TimeProvider timeProvider)
         {
             _projectRepository = projectRepository;
-            _tagRepository = tagRepository;
             _timeProvider = timeProvider;
         }
 
         public async Task<Result<Guid>> HandleAsync(CreateProjectCommand message, CancellationToken cancellationToken = default)
         {
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
-
-            var tags = await _tagRepository.GetAndInsert(message.Tags);
 
             var project = new Project
             {
@@ -36,7 +32,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
                 Name = message.Name,
                 Slug = message.Name.ToUniqueSlug(),
                 Description = message.Description,
-                Tags = tags
+                Tags = message.Tags
             };
 
             await _projectRepository.InsertAsync(project);
