@@ -78,21 +78,21 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpPost("{postId:Guid}/image"), Authorize]
-        public async Task<IActionResult> AttachImage(Guid postId, IFormFile file)
+        public async Task<IActionResult> UploadCoverImage(Guid postId, IFormFile file)
         {
-            Result result = await _commandMediator.SendAsync(
+            Result<string> result = await _commandMediator.SendAsync(
                 new UploadCoverImageCommand(User.GetAccountId(), postId, file));
 
-            if (result.Success)
+            if (result.TryGetValue(out var value))
             {
-                return Ok();
+                return Ok(value);
             }
 
             return BadRequest();
         }
 
         [HttpDelete("{postId:Guid}/image"), Authorize]
-        public async Task<IActionResult> DetachImage(Guid postId)
+        public async Task<IActionResult> DeleteCoverImage(Guid postId)
         {
             Result result = await _commandMediator.SendAsync(
                 new RemoveImageFromPostCommand(User.GetAccountId(), postId));

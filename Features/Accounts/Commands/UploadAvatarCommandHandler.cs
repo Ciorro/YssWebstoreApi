@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Accounts.Commands
 {
     public class UploadAvatarCommandHandler
-        : ICommandHandler<UploadAvatarCommand, Result>
+        : ICommandHandler<UploadAvatarCommand, Result<string>>
     {
         private readonly IRepository<Account> _accountRepository;
         private readonly IAvatarStorage _avatarStorage;
@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Features.Accounts.Commands
             _avatarStorage = avatarStorage;
         }
 
-        public async Task<Result> HandleAsync(UploadAvatarCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result<string>> HandleAsync(UploadAvatarCommand message, CancellationToken cancellationToken = default)
         {
             var account = await _accountRepository.GetAsync(message.AccountId);
             if (account is null)
@@ -31,7 +31,7 @@ namespace YssWebstoreApi.Features.Accounts.Commands
             account.Avatar = avatarResource;
 
             await _accountRepository.UpdateAsync(account);
-            return Result.Ok();
+            return avatarResource.PublicUrl!;
         }
     }
 }

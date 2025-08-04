@@ -78,12 +78,12 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("avatar"), Authorize]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
-            Result result = await _commandMediator.SendAsync(
+            Result<string> result = await _commandMediator.SendAsync(
                 new UploadAvatarCommand(User.GetAccountId(), file));
 
-            if (result.Success)
+            if (result.TryGetValue(out var value))
             {
-                return Ok();
+                return Ok(value);
             }
 
             return BadRequest();

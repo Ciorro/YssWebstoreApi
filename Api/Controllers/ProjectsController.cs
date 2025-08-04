@@ -84,12 +84,12 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("{projectId:Guid}/icon"), Authorize]
         public async Task<IActionResult> UploadIcon(Guid projectId, IFormFile file)
         {
-            Result result = await _commandMediator.SendAsync(
+            Result<string> result = await _commandMediator.SendAsync(
                 new UploadIconCommand(User.GetAccountId(), projectId, file));
 
-            if (result.Success)
+            if (result.TryGetValue(out var value))
             {
-                return NoContent();
+                return Ok(value);
             }
 
             return BadRequest();
@@ -112,12 +112,12 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("{projectId:Guid}/images"), Authorize]
         public async Task<IActionResult> UploadImage(Guid projectId, IFormFile file)
         {
-            Result result = await _commandMediator.SendAsync(
+            Result<string> result = await _commandMediator.SendAsync(
                 new UploadImageCommand(User.GetAccountId(), projectId, file));
 
-            if (result.Success)
+            if (result.TryGetValue(out var value))
             {
-                return NoContent();
+                return Ok(value);
             }
 
             return BadRequest();

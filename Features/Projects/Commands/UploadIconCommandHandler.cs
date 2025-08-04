@@ -8,7 +8,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class UploadIconCommandHandler
-        : ICommandHandler<UploadIconCommand, Result>
+        : ICommandHandler<UploadIconCommand, Result<string>>
     {
         private readonly IRepository<Project> _projectRepository;
         private readonly IProjectStorage _projectStorage;
@@ -19,7 +19,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             _projectStorage = projectStorage;
         }
 
-        public async Task<Result> HandleAsync(UploadIconCommand message, CancellationToken cancellationToken = default)
+        public async Task<Result<string>> HandleAsync(UploadIconCommand message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
             if (project is null)
@@ -37,7 +37,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             project.Icon = iconResource;
 
             await _projectRepository.UpdateAsync(project);
-            return Result.Ok();
+            return iconResource.PublicUrl!;
         }
     }
 }

@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Commands
 {
-    public class UploadCoverImageCommand : ICommand<Result>
+    public class UploadCoverImageCommand : ICommand<Result<string>>
     {
         public Guid AccountId { get; }
         public Guid PostId { get; }
