@@ -96,6 +96,11 @@ namespace YssWebstoreApi.Persistance.Storage
             };
         }
 
+        public async Task<string?> GetPackageUrl(string path)
+        {
+            return await _storage.GetPrivateUrl(PackagesBucket, path, TimeSpan.FromSeconds(30));
+        }
+
         public async Task DeletePackage(string path)
         {
             await _storage.Delete(PackagesBucket, path);

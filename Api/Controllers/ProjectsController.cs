@@ -206,6 +206,30 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpGet("{projectId:Guid}/packages/{packageId:Guid}")]
+        public async Task<IActionResult> DownloadPackage(Guid projectId, Guid packageId)
+        {
+            Guid? accountId = null;
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                accountId = User.GetAccountId();
+            }
+
+            Result<string> result = await _commandMediator.SendAsync(
+                new DownloadPackageCommand(projectId, packageId)
+                {
+                    AccountId = accountId
+                });
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/pin"), Authorize]
         public async Task<IActionResult> PinProject(Guid projectId)
         {
