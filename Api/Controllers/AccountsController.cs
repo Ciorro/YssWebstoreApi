@@ -75,11 +75,11 @@ namespace YssWebstoreApi.Api.Controllers
             return NotFound();
         }
 
-        [HttpPost("{accountId:Guid}/avatar"), Authorize]
-        public async Task<IActionResult> UploadAvatar(Guid accountId, IFormFile file)
+        [HttpPost("avatar"), Authorize]
+        public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
             Result result = await _commandMediator.SendAsync(
-                new UploadAvatarCommand(accountId, file));
+                new UploadAvatarCommand(User.GetAccountId(), file));
 
             if (result.Success)
             {
@@ -89,11 +89,11 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
-        [HttpDelete("{accountId:Guid}/avatar"), Authorize]
-        public async Task<IActionResult> DeleteAvatar(Guid accountId)
+        [HttpDelete("avatar"), Authorize]
+        public async Task<IActionResult> DeleteAvatar()
         {
             Result result = await _commandMediator.SendAsync(
-                new DeleteAvatarCommand(accountId));
+                new DeleteAvatarCommand(User.GetAccountId()));
 
             if (result.Success)
             {
