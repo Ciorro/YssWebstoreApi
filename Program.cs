@@ -7,7 +7,7 @@ using Microsoft.OpenApi.Models;
 using Npgsql;
 using System.Data;
 using System.Text;
-using YssWebstoreApi.Api.Formatters;
+using System.Text.Json.Serialization;
 using YssWebstoreApi.Persistance;
 using YssWebstoreApi.Setup;
 
@@ -56,10 +56,11 @@ namespace YssWebstoreApi
 
             builder.Services.AddCors();
             builder.Services.AddHttpClient();
-            builder.Services.AddControllers((config) =>
-            {
-                config.InputFormatters.Add(new PlainTextFormatter());
-            });
+            builder.Services.AddControllers()
+                .AddJsonOptions(config =>
+                {
+                    config.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             builder.Services.AddRepositories();
             builder.Services.AddServices();
 

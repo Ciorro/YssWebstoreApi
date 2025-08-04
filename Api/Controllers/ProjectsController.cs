@@ -2,6 +2,7 @@
 using LiteBus.Queries.Abstractions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using YssWebstoreApi.Api.DTO.Packages;
 using YssWebstoreApi.Api.DTO.Projects;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Entities.Tags;
@@ -206,7 +207,21 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
-        [HttpGet("{projectId:Guid}/packages/{packageId:Guid}")]
+        [HttpGet("{projectId:Guid}/packages")]
+        public async Task<IActionResult> GetProjectPackages(Guid projectId)
+        {
+            Result<IList<PackageResponse>> result = await _queryMediator.QueryAsync(
+                new GetProjectPackagesQuery(projectId));
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpGet("{projectId:Guid}/packages/{packageId:Guid}/download")]
         public async Task<IActionResult> DownloadPackage(Guid projectId, Guid packageId)
         {
             Guid? accountId = null;

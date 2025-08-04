@@ -1,4 +1,4 @@
-﻿namespace YssWebstoreApi.Api.DTO.Projects
+﻿namespace YssWebstoreApi.Api.DTO.Packages
 {
     public class UpdatePackageRequest
     {
