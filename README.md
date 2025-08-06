@@ -1,380 +1,333 @@
 # YssWebstoreAPI
 
-YssWebstoreAPi is the backend API for YssStore - a social media platform for sharing games, tools and assets. Written in C#, using ASP.NET, Dapper and MediatR.
+YssWebstoreAPI is the backend for the YssStore - a social media platform for sharing games, tools and assets. Written in C#, using ASP.NET, LiteBus, Dapper and PostgreSQL.
 
 ## Endpoints
 
-Endpoints marked with :key: require authentication with bearer token.
+Test the API: [YssWebstoreAPI (Swagger)](https://api.store.yss.ct8.pl/swagger)
+
+### Base Search Parameters
+
+- `q` (string): General search query.
+- `SortOptions.OrderBy` (string): Field to order results by.
+- `SortOptions.Order` (string, enum: DESC, ASC): Sorting order.
+- `PageOptions.Page` (integer): Page number.
+- `PageOptions.PageSize` (integer): Number of results per page.
+
 ### Accounts
 
-**GET /api/accounts/{uniqueName}**: Get public account.
-```jsonc
-//RESPONSE
-{
-  "id": 3,
-  "createdAt": "2024-09-11T20:03:49+02:00",
-  "updatedAt": "2025-01-14T20:06:57+01:00",
-  "uniqueName": "ciorro",
-  "displayName": "CiorroDev",
-  "status": "🚂🚃🚃🚃"
-}
-```
+#### GET /api/Accounts
 
-:key: **GET /api/accounts**: Get private account.
-```jsonc
-//RESPONSE
-{
-  "id": 3,
-  "createdAt": "2024-09-11T20:03:49+02:00",
-  "updatedAt": "2025-01-14T20:06:57+01:00",
-  "email": "example@email.com",
-  "uniqueName": "ciorro",
-  "displayName": "CiorroDev",
-  "status": "🚂🚃🚃🚃"
-}
-```
+Retrieves a list of accounts.
 
-:key: **PUT /api/accounts/{uniqueName}**: Update an account
-```jsonc
-//REQUEST
-{
-  "uniquename": "yss",
-  "displayname": "Yellow Squares Studio",
-  "status": ""
-}
+- Query Parameters:
+  - Base Search Parameters
+  - `FollowedBy` (string, uuid): Filter accounts followed by a specific user.
+  - `Following` (string, uuid): Filter accounts following a specific user.
 
-//RESPONSE
-accountId
-```
+#### GET /api/Accounts/:uniqueName
 
-:key: **DELETE /api/accounts/{uniqueName}**: Delete an account
-```
-//RESPONSE
-accountId
-```
+Retrieves an account by its unique name.
 
-:key: **POST /api/accounts/{uniqueName}/follow**: Follow an account
-```
-//RESPONSE
-accountId
-```
+- Path Parameters:
+  - `uniqueName` (string, required): The unique name of the account.
 
-:key: **DELETE /api/accouts/{uniqueName}/follow**: Unfollow an account
-```
-//RESPONSE
-accountId
-```
-### Auth
-**POST /api/auth/signup**: Create an account.
-```jsonc
-//REQUEST
-{
-  "uniquename": "ciorro",
-  "displayname": "CiorroDev",
-  "credentials": {
-    "email": "example@email.com",
-    "password": "password"
-  }
-}
+#### GET /api/Accounts/me
 
-//RESPONSE
-{
-  "accessToken": "***",
-  "refreshToken": "***"
-}
-```
+Retrieves the currently authenticated user's account information.
 
-**POST /api/auth/signin**: Sign in to an existing account.
-```jsonc
-//REQUEST
-{
-  "email": "example@email.com",
-  "password": "password"
-}
+#### POST /api/Accounts/avatar
 
-//RESPONSE
-{
-  "accessToken": "***",
-  "refreshToken": "***"
-}
-```
+Uploads an avatar image for the current user.
 
-**POST /api/auth/{accountId}/refresh**: Get new refresh token.
-```jsonc
-//REQUEST
-"RefreshToken"
+- Request Body:
+  - `file` (binary): The avatar image file.
 
-//RESPONSE
-{
-  "accessToken": "***",
-  "refreshToken": "***"
-}
-```
+#### DELETE /api/Accounts/avatar
 
-:key: **POST /api/auth/generateVerificationCode**: Generate a new verification code.
-```
-No content
-```
+Deletes the avatar for the current user.
 
-:key: **POST /api/auth/verify**: Verify an account with a code
-```
-//REQUEST
-123456
-```
+#### POST /api/Accounts/:accountId/follows
 
-### Products
-**GET /api/products/{productId}**: Get single product.
-```jsonc
-{
-  "id": 1,
-  "createdAt": "2024-09-13T01:24:13+02:00",
-  "updatedAt": "2024-11-28T00:06:35+01:00",
-  "account": {
-    "id": 3,
-    "createdAt": "2024-09-11T20:03:49+02:00",
-    "updatedAt": "2025-01-14T20:06:57+01:00",
-    "uniqueName": "ciorro",
-    "displayName": "CiorroDev",
-    "status": "🚂🚃🚃🚃"
-  },
-  "name": "Connect Paint",
-  "description": "A long description of the app.",
-  "sourceUrl": null,
-  "rating": 3,
-  "images": [
-    "/products/1/img-1.jpg",
-    "/products/1/img-0.jpg",
-    "/products/1/img-2.jpg"
-  ],
-  "tags": [
-    {
-      "group": "category",
-      "value": "tool"
-    },
-    {
-      "group": "tag",
-      "value": "2D"
-    },
-    {
-      "group": "tag",
-      "value": "art"
-    }
-  ],
-  "supportedOS": 3
-}
-```
+Follows an account.
 
-**GET /api/products/search**: Search for products. Supports following params:
-- **accountName**: owner's unique name.
-- **searchQuery**: a text to search by.
-- **orderBy**: name of the property to search by.
-- **descending**: true/false.
-- **page**: page number.
-- **pageSize**: number of search results per page.
-```jsonc
-{
-  "pageNumber": 0,
-  "pageSize": 2,
-  "itemCount": 3,
-  "items": [
-    //Products...
-  ]
-}
-```
+- Path Parameters:
+  - `accountId` (string, uuid, required): The ID of the account to follow.
 
-:key: **POST /api/products**: Creates a new product.
-```
-//REQUEST 
-//TODO
+#### DELETE /api/Accounts/:accountId/follows
 
-//RESPONSE
-productId
-```
+Unfollows an account.
 
-:key: **PUT /api/products/{productId}**: Updates a product.
-```
-//REQUEST 
-//TODO
+- Path Parameters:
+  - `accountId` (string, uuid, required): The ID of the account to unfollow.
 
-//RESPONSE
-productId
-```
+#### POST /api/Accounts/verify
 
-:key: **DELETE /api/products/{productId}**: Deletes a product.
-```
-//RESPONSE
-productId
-```
+Verifies an account using a token.
 
-:key: **POST /api/products/{productId}/pin**: Pins the product to the profile page.
-```
-//RESPONSE
-productId
-```
+- Request Body:
+  - `token` (string): The verification token.
 
-:key: **DELETE /api/products/{productId}/pin**: Unpins the product from the profile page.
-```
-//RESPONSE
-productId
-```
+#### POST /api/Accounts/generate-verification-code
 
-### Packages
-**GET /api/products/{productId}/packages/{packageId}**: Get single product package.
-```jsonc
-//RESPONSE
-{
-  "id": 1,
-  "createdAt": "2024-09-12T16:27:58+02:00",
-  "updatedAt": "2024-10-18T16:30:41+02:00",
-  "productId": 1,
-  "fileSize": 7992674,
-  "name": "Release",
-  "version": "0.1",
-  "downloadUrl": "http://example.com/game.zip",
-  "targetOS": 1
-}
-```
+Generates a new verification code for the current account.
 
-**GET /api/products/{productId}/packages**: Get all product packages.
-```jsonc
-//RESPONSE
-[
-  //Packages...
-]
-```
+## Auth
 
-:key: **POST /api/products{productId}/packages**: Creates a new package for a product.
-```jsonc
-//REQUEST
-{
-  "productId": 1,
-  "name": "Mac Release",
-  "version": "0.1.2",
-  "downloadUrl": "http://example.com/update.zip",
-  "targetOS": 3
-}
+#### POST /api/Auth/signup
 
-//RESPONSE
-packageId
-```
+Registers a new user account.
 
-:key: **PUT /api/products/{productId}/packages/{packageId}**: Updates a package.
-```jsonc
-//REQUEST
-{
-  "name": "Windows Release"
-}
+- Request Body:
+  - `email` (string, email, nullable): User's email.
+  - `password` (string, nullable): User's password.
+  - `uniqueName` (string, nullable): Unique username.
+  - `displayName` (string, nullable): User's display name.
 
-//RESPONSE
-packageId
-```
+#### POST /api/Auth/signin
 
-:key: **DELETE /api/products/{productId}/packages/{packageId}**: Deletes a package.
-```
-//RESPONSE
-packageId
-```
+Authenticates a user and generates a session token.
 
-### Reviews
-**GET /api/products/{productId}/reviews**: Get product reviews. Supports following params:
-- **page**: page number.
-- **pageSize**: number of search results per page.
-```jsonc
-//RESPONSE
-{
-  "pageNumber": 0,
-  "pageSize": 2,
-  "itemCount": 2,
-  "items": [
-    //Reviews...
-  ]
-}
-```
+- Request Body:
+  - `email` (string, email, nullable): User's email.
+  - `password` (string, nullable): User's password.
+  - `deviceInfo` (string, nullable): Device information.
 
-**GET /api/products/{productId}/reviews/account/{accountId}**: Get product review submitted by a spcific user.
-```jsonc
-//RESPONSE
-{
-  "id": 12,
-  "createdAt": "2024-11-18T17:33:14+01:00",
-  "updatedAt": "2024-12-02T18:43:23+01:00",
-  "account": {
-    "id": 3,
-    "createdAt": "2024-09-11T20:03:49+02:00",
-    "updatedAt": "2025-01-14T20:06:57+01:00",
-    "uniqueName": "ciorro",
-    "displayName": "CiorroDev",
-    "status": "🚂🚃🚃🚃"
-  },
-  "rate": 5,
-  "content": "STRONG"
-}
-```
+#### POST /api/Auth/signout
 
-**GET /api/products/{productId}/reviews/summary**: Get reviews summary for a product.
-```jsonc
-//RESPONSE
-{
-  "minRate": 1,
-  "maxRate": 5,
-  "average": 4.5,
-  "totalCount": 2,
-  "rates": [
-    {
-      "rate": 1,
-      "count": 0,
-      "share": 0
-    },
-    {
-      "rate": 2,
-      "count": 0,
-      "share": 0
-    },
-    {
-      "rate": 3,
-      "count": 0,
-      "share": 0
-    },
-    {
-      "rate": 4,
-      "count": 1,
-      "share": 0.5
-    },
-    {
-      "rate": 5,
-      "count": 1,
-      "share": 0.5
-    }
-  ]
-}
-```
+Signs out the current user session.
 
-:key: **POST /api/product/{productId}/reviews**: Creates a review for a product.
-```jsonc
-//REQUEST
-{
-	"rate": 2,
-	"content": "🫳🏻🫳🏻🫳🏻"
-}
+- Request Body:
+  - `sessionToken` (string): The session token to sign out.
 
-//RESPONSE
-reviewId
-```
+#### POST /api/Auth/signout-all
 
-:key: **PUT /api/products/{productId}/reviews**: Updates a review.
-```jsonc
-//REQUEST
-{
-	"rate": 5,
-	"content": "Super!"
-}
+Signs out all active sessions for the current user.
 
-//RESPONSE
-reviewId
-```
+#### POST /api/Auth/refresh
 
-:key: **DELETE /api/products/{productId}/reviews**: Deletes a review.
-```
-//RESPONSE
-reviewId
-```
+Refreshes an authentication token.
+
+- Request Body:
+  - `accountId` (string, uuid): The account ID.
+  - `sessionToken` (string, nullable): The session token to refresh.
+
+## Posts
+
+#### GET /api/Posts
+
+Retrieves a list of posts.
+
+- Query Parameters:
+  - Base Search Parameters
+  - `Account` (string): Filter posts by account.
+  - `Project` (string, uuid): Filter posts related to a specific project.
+
+#### POST /api/Posts
+
+Creates a new post.
+
+- Request Body:
+  - `title` (string, nullable): Title of the post.
+  - `content` (string, nullable): Content of the post.
+  - `targetProjectId` (string, uuid, nullable): ID of the target project.
+
+#### GET /api/Posts/:postId
+
+Retrieves a single post by its ID.
+
+- Path Parameters:
+  - `postId` (string, uuid, required): The ID of the post.
+
+#### POST /api/Posts/:postId/image
+
+Uploads an image for a specific post.
+
+- Path Parameters:
+  - `postId` (string, uuid, required): The ID of the post.
+- Request Body:
+  - `file` (binary): The image file.
+
+#### DELETE /api/Posts/:postId/image
+
+Deletes an image from a specific post.
+
+- Path Parameters:
+  - `postId` (string, uuid, required): The ID of the post.
+
+## Projects
+
+#### GET /api/Projects
+
+Retrieves a list of projects.
+
+- Query Parameters:
+  - Base Search Parameters
+  - `Account` (string): Filter projects by account.
+  - `Tags` (array of strings): Filter projects by tags.
+  - `PinnedOnly` (boolean): Show only pinned projects.
+
+#### POST /api/Projects
+
+Creates a new project.
+
+- Request Body:
+  - `name` (string, nullable): Name of the project.
+  - `description` (string, nullable): Description of the project.
+  - `tags` (array of strings, nullable): Tags associated with the project.
+
+#### GET /api/Projects/:slug
+
+Retrieves a project by its unique slug.
+
+- Path Parameters:
+  - `slug` (string, required): The slug of the project.
+
+#### POST /api/Projects/:projectId/icon
+
+Uploads an icon for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Request Body:
+  - `file` (binary): The icon file.
+
+#### DELETE /api/Projects/:projectId/icon
+
+Deletes a project's icon.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+
+#### POST /api/Projects/:projectId/images
+
+Uploads an image to a project's gallery.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Request Body:
+  - `file` (binary): The image file.
+
+#### DELETE /api/Projects/:projectId/images/:imageId
+
+Deletes an image from a project's gallery.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+  - `imageId` (string, uuid, required): The ID of the image.
+
+#### PUT /api/Projects/:projectId/images/:imageId/order
+
+Updates the order of an image in a project's gallery.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+  - `imageId` (string, uuid, required): The ID of the image.
+- Request Body:
+  - `order` (integer, int): The new order of the image.
+
+#### GET /api/Projects/:projectId/packages
+
+Retrieves a list of packages for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+
+#### POST /api/Projects/:projectId/packages
+
+Uploads a new package for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Query Parameters:
+  - `Name` (string, required): Name of the package.
+  - `Version` (string, required): Version of the package.
+  - `TargetOS` (string, enum: Any, Windows, Linux, Mac, Android): Target operating system.
+- Request Body:
+  - `File` (binary, required): The package file.
+
+#### DELETE /api/Projects/:projectId/packages/:packageId
+
+Deletes a package from a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+  - `packageId` (string, uuid, required): The ID of the package.
+
+#### PUT /api/Projects/:projectId/packages/:packageId
+
+Updates a package's information.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+  - `packageId` (string, uuid, required): The ID of the package.
+- Request Body:
+  - `name` (string, nullable): New name for the package.
+
+#### GET /api/Projects/:projectId/packages/:packageId/download
+
+Downloads a specific package.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+  - `packageId` (string, uuid, required): The ID of the package.
+
+#### POST /api/Projects/:projectId/pin
+
+Pins a project to the current user's profile.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+
+#### DELETE /api/Projects/:projectId/pin
+
+Unpins a project from the current user's profile.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+
+## Reviews
+
+#### GET /api/projects/:projectId/Reviews
+
+Retrieves a list of reviews for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Query Parameters:
+  - Base Search Parameters
+  - `AccountId` (string, uuid): Filter reviews by a specific account.
+
+#### POST /api/projects/:projectId/Reviews
+
+Creates a new review for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Request Body:
+  - `rate` (integer, int): The rating for the review.
+  - `content` (string, nullable): The content of the review.
+
+#### PUT /api/projects/:projectId/Reviews
+
+Updates an existing review for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+- Request Body:
+  - `rate` (integer, int): The updated rating.
+  - `content` (string, nullable): The updated content.
+
+#### DELETE /api/projects/:projectId/Reviews
+
+Deletes a review for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
+
+#### GET /api/projects/:projectId/Reviews/summary
+
+Retrieves a summary of reviews for a project.
+
+- Path Parameters:
+  - `projectId` (string, uuid, required): The ID of the project.
