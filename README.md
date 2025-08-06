@@ -167,6 +167,13 @@ Retrieves a list of projects.
   - `Tags` (array of strings): Filter projects by tags.
   - `PinnedOnly` (boolean): Show only pinned projects.
 
+#### GET /api/Projects/:slug
+
+Retrieves a project by its unique slug.
+
+- Path Parameters:
+  - `slug` (string, required): The slug of the project.
+
 #### POST /api/Projects
 
 Creates a new project.
@@ -176,12 +183,12 @@ Creates a new project.
   - `description` (string, nullable): Description of the project.
   - `tags` (array of strings, nullable): Tags associated with the project.
 
-#### GET /api/Projects/:slug
+#### DELETE /api/Projects/:projectId
 
-Retrieves a project by its unique slug.
+Deletes a project.
 
 - Path Parameters:
-  - `slug` (string, required): The slug of the project.
+  - `projectId` (string, uuid, required): The ID of the project.
 
 #### POST /api/Projects/:projectId/icon
 

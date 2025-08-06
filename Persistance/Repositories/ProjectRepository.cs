@@ -170,6 +170,11 @@ namespace YssWebstoreApi.Persistance.Repositories
         {
             using var transaction = _db.BeginTransaction();
 
+            await DeleteTags(id, transaction);
+            await DeleteIcon(id, transaction);
+            await DeleteImages(id, transaction);
+            await DeletePackages(id, transaction);
+
             await _db.ExecuteAsync(
                 """
                 DELETE FROM Projects WHERE Projects.Id = @ProjectId;
@@ -180,10 +185,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                 },
                 transaction);
 
-            await DeleteTags(id, transaction);
-            await DeleteIcon(id, transaction);
-            await DeleteImages(id, transaction);
-            await DeletePackages(id, transaction);
+            transaction.Commit();
         }
 
         private async Task DeleteTags(Guid entityId, IDbTransaction transaction)

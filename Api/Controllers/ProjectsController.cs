@@ -81,6 +81,20 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpDelete("{projectId:Guid}"), Authorize]
+        public async Task<IActionResult> DeleteProject(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeleteProjectCommand(User.GetAccountId(), projectId));
+            
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/icon"), Authorize]
         public async Task<IActionResult> UploadIcon(Guid projectId, IFormFile file)
         {
