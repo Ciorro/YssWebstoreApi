@@ -2,7 +2,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using YssWebstoreApi.Models;
 
 namespace YssWebstoreApi.Services.Jwt
 {
@@ -17,18 +16,11 @@ namespace YssWebstoreApi.Services.Jwt
             _timeProvider = timeProvider;
         }
 
-        public string GetJwt(Account account)
+        public string GetJwt(params Claim[] claims)
         {
-            ArgumentNullException.ThrowIfNull(account.Id, nameof(Account.Id));
-
             var currentTime = _timeProvider.GetUtcNow().UtcDateTime;
             var lifetime = _configuration.GetValue<TimeSpan?>("Security:AccessTokenLifetime")
                 ?? TimeSpan.FromMinutes(1);
-
-            Claim[] claims = [
-                new Claim("account_id", account.Id.Value.ToString()),
-                new Claim("is_verified", account.IsVerified.ToString())
-            ];
 
             var token = new JwtSecurityToken(
                 claims: claims,

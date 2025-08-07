@@ -1,9 +1,9 @@
-﻿using YssWebstoreApi.Models;
+﻿using System.Security.Claims;
 
 namespace YssWebstoreApi.Services.Jwt
 {
     public interface ITokenService
     {
-        string GetJwt(Account account);
+        string GetJwt(params Claim[] claims);
     }
 }

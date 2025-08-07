@@ -24,62 +24,91 @@ namespace YssWebstoreApi.Controllers
         [HttpPost("signin")]
         public async Task<IActionResult> SignIn([FromBody] SignInCredentials signInCredentials)
         {
-            var account = await _mediator.Send(new CredentialsSignInQuery
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var signInResult = await _mediator.Send(new SignInQuery
             {
                 Email = signInCredentials.Email,
-                Password = signInCredentials.Password
+                Password = signInCredentials.Password,
             });
 
-            if (account is null)
+            if (!signInResult.HasValue)
             {
                 return Unauthorized();
             }
 
-            var session = await _mediator.Send(new CreateSessionCommand(account));
-            var accessToken = await _mediator.Send(new GetAccessTokenQuery(account));
+            var refreshToken = await _mediator.Send(
+                new GetValidRefreshTokenQuery(signInResult.Value.accountId));
+            refreshToken = await _mediator.Send(
+                new GetProlongedRefreshTokenCommand(signInResult.Value.accountId)
+                {
+                    CurrentRefreshToken = refreshToken
+                });
 
             return Ok(new
             {
-                AccessToken = accessToken,
-                SessionToken = session!.SessionToken
+                AccessToken = signInResult.Value.token,
+                RefreshToken = refreshToken
             });
         }
 
         [HttpPost("signup")]
         public async Task<IActionResult> SignUp([FromBody] CreateAccount createAccount)
         {
-            var accountId = await _mediator.Send(new SignUpCommand(createAccount));
-
-            return accountId.HasValue ?
-                Ok(accountId) :
-                Conflict();
-        }
-
-
-        [HttpPost("{accountId:int}/refresh")]
-        public async Task<IActionResult> Refresh([FromRoute] ulong accountId, [FromBody] string sessionToken)
-        {
-            var account = await _mediator.Send(new SessionTokenSignInQuery
+            if (!ModelState.IsValid)
             {
-                AccountId = accountId,
-                SessionToken = sessionToken
-            });
+                return BadRequest(ModelState);
+            }
 
-            if (account is null)
+            var accountId = await _mediator.Send(new SignUpCommand(createAccount));
+            if (!accountId.HasValue)
+            {
+                return Conflict();
+            }
+
+            var accessToken = (await _mediator.Send(new SignInQuery
+            {
+                Email = createAccount.Credentials.Email,
+                Password = createAccount.Credentials.Password
+            }))?.token;
+
+            var refreshToken = await _mediator.Send(new GetProlongedRefreshTokenCommand(accountId.Value));
+
+            if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(accessToken))
             {
                 return Unauthorized();
             }
 
-            var extendedSession = await _mediator.Send(new ExtendSessionCommand(account, sessionToken));
-            if (extendedSession is not null)
+            return Ok(new
             {
-                return Ok(new
-                {
-                    AccessToken = await _mediator.Send(new GetAccessTokenQuery(account))
-                });
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            });
+        }
+
+        [HttpPost("{accountId:int}/refresh")]
+        public async Task<IActionResult> Refresh([FromRoute] ulong accountId, [FromBody] string refreshToken)
+        {
+            if (string.IsNullOrWhiteSpace(refreshToken))
+            {
+                return Unauthorized();
             }
 
-            return Problem();
+            var tokenCredentials = await _mediator.Send(new TokenSignInQuery(accountId, refreshToken));
+            if (tokenCredentials is null)
+            {
+                return Unauthorized();
+            }
+
+            await _mediator.Send(new GetProlongedRefreshTokenCommand(accountId)
+            {
+                CurrentRefreshToken = tokenCredentials.RefreshToken
+            });
+
+            return Ok(tokenCredentials!);
         }
 
         [HttpPost("generateVerificationCode"), Authorize, AllowUnverified]
@@ -87,8 +116,8 @@ namespace YssWebstoreApi.Controllers
         {
             var result = await _mediator.Send(new GenerateVerificationCodeCommand(User.GetUserId()));
 
-            return result ?
-                Ok() :
+            return result ? 
+                Ok() : 
                 Problem();
         }
 

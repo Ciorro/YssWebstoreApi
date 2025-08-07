@@ -23,12 +23,6 @@ namespace YssWebstoreApi.Installers
             {
                 return s.GetRequiredService<ICredentialsRepository>();
             });
-
-            services.AddScoped<ISessionRepository, SessionRepository>();
-            services.AddScoped<IRepository<Session>>(s =>
-            {
-                return s.GetRequiredService<ISessionRepository>();
-            });
         }
     }
 }
