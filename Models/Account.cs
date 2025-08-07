@@ -10,6 +10,5 @@ namespace YssWebstoreApi.Models
         public string? UniqueName { get; set; }
         public string? DisplayName { get; set; }
         public string? Status { get; set; }
-        public bool IsVerified { get; set; }
     }
 }
