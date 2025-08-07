@@ -1,20 +1,25 @@
-﻿using System.Reflection;
-
-namespace YssWebstoreApi.Helpers
+﻿namespace YssWebstoreApi.Helpers
 {
     public static class PathHelper
     {
-        public static string GetAbsolutePathRelativeToAssembly(string path, Assembly? assembly = null)
+        public static string UnixCombine(string path1, string path2)
         {
-            assembly ??= Assembly.GetExecutingAssembly();
-            var assemblyDir = Path.GetDirectoryName(assembly.Location);
-
-            return Path.Combine(assemblyDir ?? "", path);
+            return Path.Combine(path1, path2).Replace('\\', '/');
         }
 
-        public static string GetRandomPathName(string directory, string fileExtension)
+        public static string UnixCombine(string path1, string path2, string path3)
         {
-            return Path.Combine(directory, Guid.NewGuid().ToString("N") + fileExtension);
+            return Path.Combine(path1, path2, path3).Replace('\\', '/');
+        }
+
+        public static string UnixCombine(string path1, string path2, string path3, string path4)
+        {
+            return Path.Combine(path1, path2, path3, path4).Replace('\\', '/');
+        }
+
+        public static string UnixCombine(params ReadOnlySpan<string> paths)
+        {
+            return Path.Combine(paths).Replace('\\', '/');
         }
     }
 }

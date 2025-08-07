@@ -1,0 +1,11 @@
+ALTER TABLE Packages ALTER COLUMN TargetOS TYPE INTEGER
+USING CASE TargetOS
+	WHEN 'Any' THEN 0
+	WHEN 'Windows' THEN 1
+	WHEN 'Linux' THEN 2
+	WHEN 'Mac' THEN 3
+	WHEN 'Android' THEN 4
+	ELSE 0
+	END;
+
+DROP TYPE OperatingSystem;

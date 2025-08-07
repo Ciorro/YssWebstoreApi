@@ -1,0 +1,8 @@
+DROP TABLE ProjectImages;
+
+CREATE TABLE ProjectImages
+(
+	Id UUID PRIMARY KEY REFERENCES Resources ON DELETE CASCADE,
+	ProjectId UUID NOT NULL REFERENCES Projects,
+	ImageOrder SMALLINT
+)

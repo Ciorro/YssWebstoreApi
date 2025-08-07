@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX UniqueNameCaseInsensitive ON Accounts (LOWER(UniqueName));

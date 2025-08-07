@@ -1,0 +1,1 @@
+ALTER TABLE Resources ADD PublicUrl TEXT DEFAULT NULL;

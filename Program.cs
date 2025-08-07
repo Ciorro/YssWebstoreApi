@@ -1,15 +1,15 @@
+using LiteBus.Commands.Extensions.MicrosoftDependencyInjection;
+using LiteBus.Messaging.Extensions.MicrosoftDependencyInjection;
+using LiteBus.Queries.Extensions.MicrosoftDependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using MySql.Data.MySqlClient;
+using Npgsql;
 using System.Data;
 using System.Text;
-using YssWebstoreApi.Formatters;
-using YssWebstoreApi.Helpers;
-using YssWebstoreApi.Installers;
-using YssWebstoreApi.Services.Files;
-using YssWebstoreApi.Services.Jwt;
+using System.Text.Json.Serialization;
+using YssWebstoreApi.Persistance;
+using YssWebstoreApi.Setup;
 
 namespace YssWebstoreApi
 {
@@ -18,6 +18,7 @@ namespace YssWebstoreApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+            var config = builder.Configuration;
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -42,23 +43,27 @@ namespace YssWebstoreApi
                 });
             });
 
-            builder.Services.AddScoped<IDbConnection>((services) =>
-            {
-                var configuration = services.GetRequiredService<IConfiguration>();
-                var connectionStr = configuration.GetConnectionString("DefaultConnection")!;
-                var connection = new MySqlConnection(connectionStr);
-
-                connection.Open();
-                return connection;
-            });
+            builder.Services.AddTransient<IDatabaseInitializer>(
+                _ => new DatabaseInitializer(config.GetConnectionString("DefaultConnection")!));
+            builder.Services.AddScoped<IDbConnection>(
+                _ =>
+                {
+                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                        config.GetConnectionString("DefaultConnection")!);
+                    var dataSource = dataSourceBuilder.Build();
+                    return dataSource.OpenConnection();
+                });
 
             builder.Services.AddCors();
             builder.Services.AddHttpClient();
-            builder.Services.AddControllers((config) =>
-            {
-                config.InputFormatters.Add(new PlainTextFormatter());
-            });
+            builder.Services.AddControllers()
+                .AddJsonOptions(config =>
+                {
+                    config.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                });
             builder.Services.AddRepositories();
+            builder.Services.AddServices();
+
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -74,24 +79,20 @@ namespace YssWebstoreApi
                 });
             builder.Services.AddAuthorization();
 
-            builder.Services.AddMediatR(config =>
+            builder.Services.AddLiteBus(x =>
             {
-                config.RegisterServicesFromAssembly(typeof(Program).Assembly);
-            });
+                x.AddCommandModule(builder =>
+                {
+                    builder.RegisterFromAssembly(typeof(Program).Assembly);
+                });
 
-            builder.Services.AddSingleton<ITokenService, TokenService>();
-            builder.Services.AddSingleton<IFilesystemService>(new PhysicalFileSystem(
-                PathHelper.GetAbsolutePathRelativeToAssembly("static")));
+                x.AddQueryModule(builder =>
+                {
+                    builder.RegisterFromAssembly(typeof(Program).Assembly);
+                });
+            });
 
             var app = builder.Build();
-
-            app.UseFileServer(new FileServerOptions
-            {
-                FileProvider = new PhysicalFileProvider(
-                    PathHelper.GetAbsolutePathRelativeToAssembly("static")),
-                RequestPath = "/static",
-                EnableDirectoryBrowsing = app.Environment.IsDevelopment()
-            });
 
             //app.UseHttpsRedirection();
             app.UseCors(
@@ -108,14 +109,17 @@ namespace YssWebstoreApi
             app.UseVerification();
 
             app.MapControllers();
-            app.AddTagHandlers();
 
             if (app.Configuration.GetValue<bool>("Swagger:Enabled"))
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwaggerUI(c =>
+                {
+                    c.EnableTryItOutByDefault();
+                });
             }
 
+            app.InitDatabase();
             app.Run();
         }
     }

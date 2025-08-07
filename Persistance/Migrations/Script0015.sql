@@ -1,0 +1,14 @@
+ALTER TABLE Resources DROP COLUMN Size;
+
+CREATE TYPE OperatingSystem AS ENUM ('Any', 'Windows', 'Linux', 'Mac', 'Android');
+CREATE TABLE Packages
+(
+	Id UUID PRIMARY KEY REFERENCES Resources ON DELETE CASCADE,
+	CreatedAt TIMESTAMP NOT NULL,
+	UpdatedAt TIMESTAMP NOT NULL,
+	ProjectId UUID NOT NULL REFERENCES Projects,
+	Name VARCHAR(100) NOT NULL,
+	Version VARCHAR(32) NOT NULL,
+	TargetOS OperatingSystem NOT NULL,
+	Size BIGINT DEFAULT 0
+);

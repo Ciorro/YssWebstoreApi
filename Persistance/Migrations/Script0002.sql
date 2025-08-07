@@ -1,0 +1,9 @@
+CREATE TABLE Sessions 
+(
+	Id UUID PRIMARY KEY,
+	CreatedAt TIMESTAMP NOT NULL,
+	UpdatedAt TIMESTAMP NOT NULL,
+	AccountId UUID NOT NULL REFERENCES Accounts,
+	SessionToken VARCHAR(255) NOT NULL,
+	DeviceInfo TEXT
+);

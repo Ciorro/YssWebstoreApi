@@ -1,0 +1,1 @@
+ALTER TABLE Resources ADD Size BIGINT NOT NULL;

@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX tags_tag_key ON Tags (Tag);

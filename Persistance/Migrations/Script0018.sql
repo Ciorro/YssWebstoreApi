@@ -1,0 +1,1 @@
+ALTER TABLE Accounts ADD AvatarResourceId UUID REFERENCES Resources ON DELETE SET NULL;

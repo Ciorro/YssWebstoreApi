@@ -1,0 +1,2 @@
+ALTER TABLE Images DROP COLUMN Title;
+ALTER TABLE Images RENAME TO Resources;
