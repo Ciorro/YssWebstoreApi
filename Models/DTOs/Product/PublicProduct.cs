@@ -2,7 +2,7 @@
 
 namespace YssWebstoreApi.Models.DTOs.Product
 {
-    public class DetailedProduct
+    public class PublicProduct
     {
         public required ulong Id { get; set; }
         public required DateTimeOffset CreatedAt { get; set; }
@@ -11,7 +11,9 @@ namespace YssWebstoreApi.Models.DTOs.Product
         public required string Name { get; set; }
         public required string Description { get; set; }
         public required string SourceUrl { get; set; }
-        public HashSet<string> Images { get; set; } = [];
-        public HashSet<Tag> Tags { get; set; } = [];
+        public required float Rating { get; set; }
+        public IList<string> Images { get; set; } = [];
+        public IList<Tag> Tags { get; set; } = [];
+        public OS? SupportedOS { get; set; }
     }
 }

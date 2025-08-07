@@ -4,10 +4,8 @@ namespace YssWebstoreApi.Models
 {
     public record Tag : IParsable<Tag>
     {
-        public string? Group { get; }
-        public string? Value { get; }
-
-        public Tag() { }
+        public string Group { get; }
+        public string Value { get; }
 
         public Tag(string group, string value)
         {

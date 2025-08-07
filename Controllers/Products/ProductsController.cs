@@ -26,9 +26,15 @@ namespace YssWebstoreApi.Controllers.Products
         {
             var result = await _mediator.Send(new GetProductByIdQuery(id));
 
-            return result is DetailedProduct ?
+            return result is PublicProduct ?
                 Ok(result) :
                 NotFound();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllProducts()
+        {
+            return Ok(await _mediator.Send(new GetAllProductsQuery()));
         }
 
         [HttpPost, Authorize]
@@ -89,7 +95,7 @@ namespace YssWebstoreApi.Controllers.Products
             return resultId ? Ok() : Problem();
         }
 
-        [HttpGet]
+        [HttpGet("search")]
         public async Task<IActionResult> SearchProducts(
             [FromQuery] SearchProduct searchProduct)
         {

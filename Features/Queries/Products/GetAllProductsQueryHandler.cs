@@ -1,28 +1,22 @@
 ﻿using Dapper;
 using MediatR;
 using System.Data;
-using YssWebstoreApi.Database;
 using YssWebstoreApi.Models.DTOs.Accounts;
 using YssWebstoreApi.Models.DTOs.Product;
 
 namespace YssWebstoreApi.Features.Queries.Products
 {
-    public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, PublicProduct?>
+    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, IList<PublicProduct>>
     {
         private readonly IDbConnection _cn;
 
-        public GetProductByIdQueryHandler(IDbConnection dbConnection)
+        public GetAllProductsQueryHandler(IDbConnection dbConnection)
         {
             _cn = dbConnection;
         }
 
-        public async Task<PublicProduct?> Handle(GetProductByIdQuery request, CancellationToken cancellationToken)
+        public async Task<IList<PublicProduct>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
-            var parameters = new
-            {
-                Id = request.id
-            };
-
             string sql = @"SELECT products.*,
                                   BIT_OR(packages.TargetOS) AS SupportedOS,
                                   AVG(reviews.Rate) AS Rating,
@@ -35,15 +29,19 @@ namespace YssWebstoreApi.Features.Queries.Products
                            LEFT JOIN reviews ON reviews.ProductId = products.Id
                            LEFT JOIN products_images ON products_images.ProductId = products.Id
                            LEFT JOIN images ON images.Id = products_images.ImageId
-                           WHERE products.Id = @Id
                            GROUP BY products.Id, images.Id
                            ORDER BY products_images.Order ASC";
 
-            PublicProduct? result = null;
+            var results = new Dictionary<ulong, PublicProduct>();
 
             await _cn.QueryAsync<PublicProduct, string, PublicAccount, PublicProduct>(sql, (product, imagePath, account) =>
             {
-                result ??= product;
+                if (!results.TryGetValue(product.Id, out var result))
+                {
+                    result = product;
+                    results.Add(product.Id, result);
+                }
+
                 result.Account = account;
                 if (!string.IsNullOrEmpty(imagePath))
                 {
@@ -51,9 +49,9 @@ namespace YssWebstoreApi.Features.Queries.Products
                 }
                 return result;
 
-            }, parameters, splitOn: "Id, Gallery, Id");
+            }, null, splitOn: "Id, Gallery, Id");
 
-            return result;
+            return results.Values.ToList();
         }
     }
 }

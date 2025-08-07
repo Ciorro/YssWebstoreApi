@@ -8,9 +8,12 @@ namespace YssWebstoreApi.Models
         public DateTimeOffset? CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
         public ulong? AccountId { get; set; }
+        public ulong? ThreadId { get; set; }
+        public ulong? GalleryId { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
         public string? SourceUrl { get; set; }
         public bool? IsPinned { get; set; }
+        public IList<Tag> Tags { get; set; } = [];
     }
 }

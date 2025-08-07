@@ -20,7 +20,8 @@ namespace YssWebstoreApi.Features.Commands.Products
                 AccountId = request.AccountId,
                 Name = request.Name,
                 Description = request.Description,
-                SourceUrl = request.SourceUrl
+                SourceUrl = request.SourceUrl,
+                Tags = request.Tags.ToArray()
             });
         }
     }
