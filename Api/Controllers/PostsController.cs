@@ -7,6 +7,7 @@ using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Posts.Queries;
+using YssWebstoreApi.Features.Projects.Commands;
 using YssWebstoreApi.Features.Search.Queries;
 using YssWebstoreApi.Utils;
 
@@ -71,10 +72,24 @@ namespace YssWebstoreApi.Api.Controllers
 
             if (result.TryGetValue(out var value))
             {
-                return CreatedAtRoute(new { Id = value }, null);
+                return Ok(value);
             }
 
             return BadRequest(result.Error);
+        }
+
+        [HttpDelete("{postId:Guid}"), Authorize]
+        public async Task<IActionResult> DeletePost(Guid postId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeletePostCommand(User.GetAccountId(), postId));
+
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
         }
 
         [HttpPost("{postId:Guid}/image"), Authorize]
