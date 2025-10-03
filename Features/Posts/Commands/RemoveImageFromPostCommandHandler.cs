@@ -23,7 +23,7 @@ namespace YssWebstoreApi.Features.Posts.Commands
         {
             var post = await _postRepository.GetAsync(message.PostId);
 
-            if (post is null || post.Image is null)
+            if (post is null)
             {
                 return CommonErrors.ResourceNotFound;
             }
@@ -32,9 +32,13 @@ namespace YssWebstoreApi.Features.Posts.Commands
                 return AuthErrors.AccessDenied;
             }
 
-            await _imageStorage.Delete(post.Image.Path);
-            post.Image = null;
-            await _postRepository.UpdateAsync(post);
+            if (post.Image is not null)
+            {
+                await _imageStorage.Delete(post.Image.Path);
+                post.Image = null;
+                await _postRepository.UpdateAsync(post);
+            }
+
             return Result.Ok();
         }
     }
