@@ -78,6 +78,23 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest(result.Error);
         }
 
+        [HttpPut("{postId:Guid}"), Authorize]
+        public async Task<IActionResult> UpdatePost(Guid postId, UpdatePostRequest updatePost)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UpdatePostCommand(User.GetAccountId(), postId, updatePost.Title, updatePost.Content)
+                {
+                    TargetProjectId = updatePost.TargetProjectId
+                });
+
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
         [HttpDelete("{postId:Guid}"), Authorize]
         public async Task<IActionResult> DeletePost(Guid postId)
         {
