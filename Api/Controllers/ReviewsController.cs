@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features.Projects.Commands;
-using YssWebstoreApi.Features.Projects.Queries;
+using YssWebstoreApi.Features.Reviews.Commands;
+using YssWebstoreApi.Features.Reviews.Queries;
 using YssWebstoreApi.Features.Search.Queries;
 using YssWebstoreApi.Utils;
 

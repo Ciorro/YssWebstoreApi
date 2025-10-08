@@ -4,7 +4,7 @@ using System.Data;
 using YssWebstoreApi.Api.DTO.Reviews;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Projects.Queries
+namespace YssWebstoreApi.Features.Reviews.Queries
 {
     public class GetReviewsSummaryQueryHandler
         : IQueryHandler<GetReviewsSummaryQuery, Result<ReviewsSummaryResponse>>

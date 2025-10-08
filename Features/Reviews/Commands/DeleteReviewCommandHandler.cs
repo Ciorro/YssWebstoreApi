@@ -2,7 +2,7 @@
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Projects.Commands
+namespace YssWebstoreApi.Features.Reviews.Commands
 {
     public class DeleteReviewCommandHandler
         : ICommandHandler<DeleteReviewCommand, Result>

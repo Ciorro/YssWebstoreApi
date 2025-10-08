@@ -1,16 +1,16 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Projects.Commands
+namespace YssWebstoreApi.Features.Reviews.Commands
 {
-    public class UpdateReviewCommand : ICommand<Result>
+    public class CreateReviewCommand : ICommand<Result<Guid>>
     {
         public Guid AccountId { get; }
         public Guid ProjectId { get; }
         public int Rate { get; }
         public string? Content { get; init; }
 
-        public UpdateReviewCommand(Guid accountId, Guid projectId, int rate)
+        public CreateReviewCommand(Guid accountId, Guid projectId, int rate)
         {
             AccountId = accountId;
             ProjectId = projectId;

@@ -1,7 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Projects.Commands
+namespace YssWebstoreApi.Features.Reviews.Commands
 {
     public class DeleteReviewCommand : ICommand<Result>
     {
