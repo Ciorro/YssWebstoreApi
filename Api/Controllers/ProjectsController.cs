@@ -64,13 +64,24 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
-        [HttpPost, Authorize]
-        public async Task<IActionResult> CreateProject(CreateProjectRequest request)
+        [HttpPost("games"), Authorize]
+        public Task<IActionResult> CreateGameProject(CreateGameRequest request)
+            => CreateProject(request);
+
+        [HttpPost("tools"), Authorize]
+        public Task<IActionResult> CreateToolProject(CreateToolRequest request)
+            => CreateProject(request);
+
+        [HttpPost("assets"), Authorize]
+        public Task<IActionResult> CreateAssetProject(CreateAssetRequest request)
+            => CreateProject(request);
+
+        private async Task<IActionResult> CreateProject(CreateProjectRequest request)
         {
             Result<Guid> result = await _commandMediator.SendAsync(
                 new CreateProjectCommand(User.GetAccountId(), request.Name, request.Description)
                 {
-                    Tags = new(request.Tags)
+                    Tags = request.GetTags()
                 });
 
             if (result.TryGetValue(out var value))

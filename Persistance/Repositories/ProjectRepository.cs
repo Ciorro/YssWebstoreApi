@@ -9,12 +9,10 @@ namespace YssWebstoreApi.Persistance.Repositories
     public class ProjectRepository : IRepository<Project>
     {
         private readonly IDbConnection _db;
-        private readonly TimeProvider _timeProvider;
 
-        public ProjectRepository(IDbConnection dbConnection, TimeProvider timeProvider)
+        public ProjectRepository(IDbConnection dbConnection)
         {
             _db = dbConnection;
-            _timeProvider = timeProvider;
         }
 
         public async Task<Project?> GetAsync(Guid id)
@@ -203,33 +201,6 @@ namespace YssWebstoreApi.Persistance.Repositories
 
         private async Task InsertTags(Project entity, IDbTransaction transaction)
         {
-            var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
-
-            await _db.ExecuteAsync(
-                """
-                -- Insert all tags
-                INSERT INTO Tags (
-                    Id,
-                    CreatedAt,
-                    UpdatedAt,
-                    Tag
-                ) VALUES (
-                    @Id,
-                    @CreatedAt,
-                    @UpdatedAt,
-                    @Tag
-                ) ON CONFLICT (Tag) DO NOTHING;
-                """,
-                entity.Tags.Select(
-                    x => new
-                    {
-                        Id = Guid.CreateVersion7(creationTime),
-                        CreatedAt = creationTime,
-                        UpdatedAt = creationTime,
-                        Tag = x.ToString()
-                    }),
-                transaction);
-
             await _db.ExecuteAsync(
                 """
                 -- Insert all tag relations
@@ -245,7 +216,7 @@ namespace YssWebstoreApi.Persistance.Repositories
                 FROM
                     Tags
                 WHERE
-                    Tags.Tag = ANY(@Tags);
+                    Tags.Tag ILIKE ANY(@Tags);
                 """,
                 new
                 {
