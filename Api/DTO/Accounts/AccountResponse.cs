@@ -10,6 +10,9 @@ namespace YssWebstoreApi.Api.DTO.Accounts
         public string? StatusText { get; set; }
         public string? AvatarUrl { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool IsFollowed { get; set; }
+
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public int? FollowersCount { get; set; }
 

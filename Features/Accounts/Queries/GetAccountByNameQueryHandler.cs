@@ -28,22 +28,27 @@ namespace YssWebstoreApi.Features.Accounts.Queries
                     Accounts.DisplayName,
                     Accounts.StatusText,
                     Resources.PublicUrl AS AvatarUrl,
+                    CASE WHEN IsFollowed IS NOT NULL THEN TRUE ELSE FALSE END AS IsFollowed,
                     COUNT(CASE WHEN AccountFollows.FollowerId = Accounts.Id THEN 1 END) AS FollowingCount,
                     COUNT(CASE WHEN AccountFollows.FollowedId = Accounts.Id THEN 1 END) AS FollowersCount
                 FROM
                     Accounts
                     LEFT JOIN AccountFollows ON AccountFollows.FollowerId = Accounts.Id
                                              OR AccountFollows.FollowedId = Accounts.Id
+                    LEFT JOIN AccountFollows AS IsFollowed ON IsFollowed.FollowerId = @FollowedBy
+                                                           AND IsFollowed.FollowedId = Accounts.Id
                     LEFT JOIN Resources ON Resources.Id = Accounts.AvatarResourceId
                 WHERE
                     Accounts.UniqueName = @UniqueName
                 GROUP BY
                     Accounts.Id,
-                    Resources.Id
+                    Resources.Id,
+                    IsFollowed
                 """,
                 new
                 {
-                    message.UniqueName
+                    message.UniqueName,
+                    message.FollowedBy
                 });
 
             if (account is null)

@@ -9,5 +9,11 @@ namespace YssWebstoreApi.Extensions
             return Guid.TryParse(claimsPrincipal.FindFirstValue("accountId"), out var accountId) ?
                 accountId : throw new UnauthorizedAccessException("Missing account id.");
         }
+
+        public static Guid? GetOptionalAccountId(this ClaimsPrincipal claimsPrincipal)
+        {
+            return Guid.TryParse(claimsPrincipal.FindFirstValue("accountId"), out var accountId) ?
+                accountId : null;
+        }
     }
 }

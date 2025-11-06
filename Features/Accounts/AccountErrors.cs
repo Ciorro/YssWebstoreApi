@@ -12,5 +12,8 @@ namespace YssWebstoreApi.Features.Accounts
 
         public static readonly Error FollowedSelf =
             new Error(ErrorHelper.GetName(), "You cannot follow yourself.");
+
+        public static readonly Error AlreadyFollowed =
+            new Error(ErrorHelper.GetName(), "You are already following that account.");
     }
 }

@@ -51,7 +51,10 @@ namespace YssWebstoreApi.Api.Controllers
         public async Task<IActionResult> GetPublicAccountByUniqueName(string uniqueName)
         {
             Result<AccountResponse> result = await _queryMediator.QueryAsync(
-                new GetAccountByNameQuery(uniqueName));
+                new GetAccountByNameQuery(uniqueName)
+                {
+                    FollowedBy = User.GetOptionalAccountId()
+                });
 
             if (result.TryGetValue(out var value))
             {

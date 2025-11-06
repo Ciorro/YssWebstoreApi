@@ -1,0 +1,1 @@
+ALTER TABLE AccountFollows ADD CONSTRAINT accountfollows_followerid_followedid_key UNIQUE (FollowerId, FollowedId);

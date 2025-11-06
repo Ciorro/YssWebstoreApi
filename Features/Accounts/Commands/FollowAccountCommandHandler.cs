@@ -27,8 +27,10 @@ namespace YssWebstoreApi.Features.Accounts.Commands
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
             var id = Guid.CreateVersion7(creationTime);
 
-            await _db.ExecuteAsync(
-                """
+            try
+            {
+                await _db.ExecuteAsync(
+                    """
                 INSERT INTO AccountFollows (
                     Id,
                     CreatedAt,
@@ -48,6 +50,11 @@ namespace YssWebstoreApi.Features.Accounts.Commands
                     message.FollowerId,
                     message.FollowedId
                 });
+            }
+            catch
+            {
+                return AccountErrors.AlreadyFollowed;
+            }
 
             return Result.Ok();
         }
