@@ -1,6 +1,5 @@
 ﻿using YssWebstoreApi.Entities;
 using YssWebstoreApi.Helpers;
-using YssWebstoreApi.Persistance.Storage.Images;
 using YssWebstoreApi.Persistance.Storage.Interfaces;
 
 namespace YssWebstoreApi.Persistance.Storage
@@ -26,7 +25,7 @@ namespace YssWebstoreApi.Persistance.Storage
                 postId.ToString(),
                 FileName);
 
-            string? url = await _imageStorage.Upload(path, file, ImageProperties.PostImage);
+            string? url = await _imageStorage.Upload(path, file);
 
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
             var id = Guid.CreateVersion7(creationTime);

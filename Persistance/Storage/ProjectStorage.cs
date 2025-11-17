@@ -1,7 +1,6 @@
 ﻿using System.Text;
 using YssWebstoreApi.Entities;
 using YssWebstoreApi.Helpers;
-using YssWebstoreApi.Persistance.Storage.Images;
 using YssWebstoreApi.Persistance.Storage.Interfaces;
 using YssWebstoreApi.Persistance.Storage.Packages;
 
@@ -31,7 +30,7 @@ namespace YssWebstoreApi.Persistance.Storage
                 projectId.ToString(),
                 IconFileName);
 
-            string? url = await _imageStorage.Upload(path, file, ImageProperties.AvatarImage);
+            string? url = await _imageStorage.Upload(path, file);
 
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
             var id = Guid.CreateVersion7(creationTime);
@@ -55,7 +54,7 @@ namespace YssWebstoreApi.Persistance.Storage
                 projectId.ToString(),
                 fileName);
 
-            string? url = await _imageStorage.Upload(path, file, "jpg");
+            string? url = await _imageStorage.Upload(path, file);
 
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
             var id = Guid.CreateVersion7(creationTime);
