@@ -35,7 +35,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 """);
 
             if (!string.IsNullOrWhiteSpace(SearchText))
-                builder.Where("Projects.Name LIKE @SearchText", new { SearchText = $"%{SearchText}%" });
+                builder.Where("Projects.Name ILIKE @SearchText", new { SearchText = $"%{SearchText}%" });
 
             if (!string.IsNullOrWhiteSpace(AccountName))
                 builder.Where("Accounts.UniqueName = @AccountName", new { AccountName });
@@ -50,7 +50,7 @@ namespace YssWebstoreApi.Features.Search.Queries
                 builder.Where("Projects.IsPinned = TRUE");
 
             if (Tags?.Any() == true)
-                builder.Having("ARRAY_AGG(Tags.Tag) @> @Tags", new { Tags = Tags.Select(x => x.ToString()).ToList() });
+                builder.Having("ARRAY_AGG(Tags.Tag) @> @Tags::CITEXT[]", new { Tags = Tags.Select(x => x.ToString()).ToList() });
 
             switch (SortOptions.OrderBy?.ToLower())
             {
@@ -59,6 +59,9 @@ namespace YssWebstoreApi.Features.Search.Queries
                     break;
                 case "title":
                     builder.OrderBy($"Projects.Name {SortOptions.Order}");
+                    break;
+                case "rate":
+                    builder.OrderBy($"AVG(Reviews.Rate) {SortOptions.Order} NULLS LAST");
                     break;
             }
 
