@@ -78,6 +78,23 @@ namespace YssWebstoreApi.Api.Controllers
             return NotFound();
         }
 
+        [HttpPut, Authorize]
+        public async Task<IActionResult> UpdateAccount(UpdateAccountRequest request)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UpdateAccountCommand(User.GetAccountId(), request.DisplayName)
+                {
+                    StatusText = request.StatusText
+                });
+
+            if (result.Success)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost("avatar"), Authorize]
         public async Task<IActionResult> UploadAvatar(IFormFile file)
         {
