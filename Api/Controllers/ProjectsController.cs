@@ -50,6 +50,20 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetProjectById(Guid id)
+        {
+            Result<ProjectResponse> result = await _queryMediator.QueryAsync(
+                new GetProjectByIdQuery(id));
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
         [HttpGet("{slug}")]
         public async Task<IActionResult> GetProjectBySlug(string slug)
         {
