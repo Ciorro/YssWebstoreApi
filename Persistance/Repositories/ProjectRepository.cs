@@ -52,6 +52,18 @@ namespace YssWebstoreApi.Persistance.Repositories
                 WHERE
                     Projects.Id = @Id;
 
+                -- Select project banner
+                SELECT 
+                    Resources.Id,
+                    Resources.CreatedAt,
+                    Resources.UpdatedAt,
+                    Resources.Path,
+                    Resources.PublicUrl
+                FROM
+                    Resources JOIN Projects ON Projects.BannerResourceId = Resources.Id
+                WHERE
+                    Projects.Id = @Id;
+
                 -- Select project images
                 SELECT 
                     Resources.Id,
@@ -93,6 +105,7 @@ namespace YssWebstoreApi.Persistance.Repositories
 
             project.Tags = new([.. await results.ReadAsync<string>()]);
             project.Icon = await results.ReadSingleOrDefaultAsync<Resource>();
+            project.Banner = await results.ReadSingleOrDefaultAsync<Resource>();
             project.Images = [.. await results.ReadAsync<Resource>()];
             project.Packages = [.. await results.ReadAsync<Package>()];
 
@@ -130,6 +143,7 @@ namespace YssWebstoreApi.Persistance.Repositories
 
             await InsertTags(entity, transaction);
             await InsertIcon(entity, transaction);
+            await InsertBanner(entity, transaction);
             await InsertImages(entity, transaction);
             await InsertPackages(entity, transaction);
 
@@ -158,6 +172,7 @@ namespace YssWebstoreApi.Persistance.Repositories
 
             await UpsertTags(entity, transaction);
             await UpsertIcon(entity, transaction);
+            await UpsertBanner(entity, transaction);
             await UpsertImages(entity, transaction);
             await UpsertPackages(entity, transaction);
 
@@ -170,6 +185,7 @@ namespace YssWebstoreApi.Persistance.Repositories
 
             await DeleteTags(id, transaction);
             await DeleteIcon(id, transaction);
+            await DeleteBanner(id, transaction);
             await DeleteImages(id, transaction);
             await DeletePackages(id, transaction);
 
@@ -298,6 +314,74 @@ namespace YssWebstoreApi.Persistance.Repositories
         {
             await DeleteIcon(entity.Id, transaction);
             await InsertIcon(entity, transaction);
+        }
+
+        private async Task DeleteBanner(Guid entityId, IDbTransaction transaction)
+        {
+            await _db.ExecuteAsync(
+                """
+                DELETE FROM Resources USING Projects
+                WHERE Projects.Id = @ProjectId
+                  AND Projects.BannerResourceId = Resources.Id;
+                
+                UPDATE Projects 
+                SET 
+                    BannerResourceId = NULL 
+                WHERE 
+                    Id = @ProjectId;
+                """,
+                new
+                {
+                    ProjectId = entityId
+                },
+                transaction);
+        }
+
+        private async Task InsertBanner(Project entity, IDbTransaction transaction)
+        {
+            if (entity.Banner is null)
+            {
+                return;
+            }
+
+            await _db.ExecuteAsync(
+                $"""
+                INSERT INTO Resources (
+                    Id,
+                    CreatedAt,
+                    UpdatedAt,
+                    Path,
+                    PublicUrl
+                ) VALUES (
+                    @{nameof(Resource.Id)},
+                    @{nameof(Resource.CreatedAt)},
+                    @{nameof(Resource.UpdatedAt)},
+                    @{nameof(Resource.Path)},
+                    @{nameof(Resource.PublicUrl)}
+                );
+                
+                UPDATE Projects
+                SET 
+                    BannerResourceId = @{nameof(Resource.Id)}
+                WHERE 
+                    Id = @ProjectId;
+                """,
+                new
+                {
+                    entity.Banner.Id,
+                    entity.Banner.CreatedAt,
+                    entity.Banner.UpdatedAt,
+                    entity.Banner.Path,
+                    entity.Banner.PublicUrl,
+                    ProjectId = entity.Id
+                },
+                transaction);
+        }
+
+        private async Task UpsertBanner(Project entity, IDbTransaction transaction)
+        {
+            await DeleteBanner(entity.Id, transaction);
+            await InsertBanner(entity, transaction);
         }
 
         private async Task DeleteImages(Guid entityId, IDbTransaction transaction)

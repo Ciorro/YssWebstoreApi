@@ -148,6 +148,34 @@ namespace YssWebstoreApi.Api.Controllers
             return BadRequest();
         }
 
+        [HttpPost("{projectId:Guid}/banner"), Authorize]
+        public async Task<IActionResult> UploadBanner(Guid projectId, IFormFile file)
+        {
+            Result<string> result = await _commandMediator.SendAsync(
+                new UploadBannerCommand(User.GetAccountId(), projectId, file));
+
+            if (result.TryGetValue(out var value))
+            {
+                return Ok(value);
+            }
+
+            return BadRequest();
+        }
+
+        [HttpDelete("{projectId:Guid}/banner"), Authorize]
+        public async Task<IActionResult> DeleteBanner(Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new DeleteBannerCommand(User.GetAccountId(), projectId));
+
+            if (result.Success)
+            {
+                return NoContent();
+            }
+
+            return BadRequest();
+        }
+
         [HttpPost("{projectId:Guid}/images"), Authorize]
         public async Task<IActionResult> UploadImage(Guid projectId, IFormFile file)
         {

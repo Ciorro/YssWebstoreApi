@@ -11,6 +11,7 @@ namespace YssWebstoreApi.Persistance.Storage
         const string PackagesBucket = "packages";
         const string ImagesDirectory = "projects";
         const string IconFileName = "icon.png";
+        const string BannerFileName = "banner.jpg";
 
         private readonly IImageStorage _imageStorage;
         private readonly IStorage _storage;
@@ -29,6 +30,28 @@ namespace YssWebstoreApi.Persistance.Storage
                 ImagesDirectory,
                 projectId.ToString(),
                 IconFileName);
+
+            string? url = await _imageStorage.Upload(path, file);
+
+            var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
+            var id = Guid.CreateVersion7(creationTime);
+
+            return new Resource
+            {
+                Id = id,
+                CreatedAt = creationTime,
+                UpdatedAt = creationTime,
+                Path = path,
+                PublicUrl = url
+            };
+        }
+
+        public async Task<Resource> UploadBanner(Guid projectId, IFormFile file)
+        {
+            string path = PathHelper.UnixCombine(
+                ImagesDirectory,
+                projectId.ToString(),
+                BannerFileName);
 
             string? url = await _imageStorage.Upload(path, file);
 

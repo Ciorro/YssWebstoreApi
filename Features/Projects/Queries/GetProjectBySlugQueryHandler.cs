@@ -30,9 +30,12 @@ namespace YssWebstoreApi.Features.Projects.Queries
                 	Projects.Name,
                 	Projects.Slug,
                 	Projects.Description,
-                    Resources.PublicUrl AS IconUrl
+                    Icon.PublicUrl AS IconUrl,
+                    Banner.PublicUrl AS BannerUrl
                 FROM 
-                    Projects LEFT JOIN Resources ON Resources.Id = Projects.IconResourceId
+                    Projects 
+                    LEFT JOIN Resources AS Icon ON Icon.Id = Projects.IconResourceId
+                    LEFT JOIN Resources AS Banner ON Banner.Id = Projects.BannerResourceId
                 WHERE 
                     Projects.Slug = @Slug;
 

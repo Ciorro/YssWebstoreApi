@@ -1,0 +1,43 @@
+﻿using LiteBus.Commands.Abstractions;
+using YssWebstoreApi.Entities;
+using YssWebstoreApi.Features.Auth;
+using YssWebstoreApi.Persistance.Repositories.Interfaces;
+using YssWebstoreApi.Persistance.Storage.Interfaces;
+using YssWebstoreApi.Utils;
+
+namespace YssWebstoreApi.Features.Projects.Commands
+{
+    public class UploadBannerCommandHandler
+        : ICommandHandler<UploadBannerCommand, Result<string>>
+    {
+        private readonly IRepository<Project> _projectRepository;
+        private readonly IProjectStorage _projectStorage;
+
+        public UploadBannerCommandHandler(IRepository<Project> projectRepository, IProjectStorage projectStorage)
+        {
+            _projectRepository = projectRepository;
+            _projectStorage = projectStorage;
+        }
+
+        public async Task<Result<string>> HandleAsync(UploadBannerCommand message, CancellationToken cancellationToken = default)
+        {
+            var project = await _projectRepository.GetAsync(message.ProjectId);
+            if (project is null)
+            {
+                return CommonErrors.ResourceNotFound;
+            }
+
+            if (project.AccountId != message.AccountId)
+            {
+                return AuthErrors.AccessDenied;
+            }
+
+            Resource bannerResource = await _projectStorage.UploadBanner(
+                message.ProjectId, message.Banner);
+            project.Banner = bannerResource;
+
+            await _projectRepository.UpdateAsync(project);
+            return bannerResource.PublicUrl!;
+        }
+    }
+}
