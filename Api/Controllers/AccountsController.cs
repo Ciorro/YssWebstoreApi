@@ -150,25 +150,5 @@ namespace YssWebstoreApi.Api.Controllers
 
             return BadRequest();
         }
-
-        [HttpPost("verify"), Authorize, AllowUnverified]
-        public async Task<IActionResult> Verify([FromBody] string verificationCode)
-        {
-            Result result = await _commandMediator.SendAsync(
-                new VerifyAccountCommand(User.GetAccountId(), verificationCode));
-
-            return result.Success ?
-                NoContent() : BadRequest();
-        }
-
-        [HttpPost("generate-verification-code"), Authorize, AllowUnverified]
-        public async Task<IActionResult> GenerateVerificationCode()
-        {
-            Result result = await _commandMediator.SendAsync(
-                new CreateVerificationCodeCommand(User.GetAccountId()));
-
-            return result.Success ?
-                NoContent() : BadRequest();
-        }
     }
 }
