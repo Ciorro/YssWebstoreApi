@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Reviews.Commands
 {
-    public class CreateReviewCommand : ICommand<Result<Guid>>
+    public class CreateReviewCommand : ICommand<ValueResult<Guid>>
     {
         public Guid AccountId { get; }
         public Guid ProjectId { get; }

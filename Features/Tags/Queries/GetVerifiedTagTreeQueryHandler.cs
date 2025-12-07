@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Tags.Queries
 {
     public class GetVerifiedTagTreeQueryHandler
-        : IQueryHandler<GetVerifiedTagTreeQuery, Result<string[]>>
+        : IQueryHandler<GetVerifiedTagTreeQuery, ValueResult<string[]>>
     {
         private readonly IDbConnection _db;
 
@@ -16,7 +16,7 @@ namespace YssWebstoreApi.Features.Tags.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<string[]>> HandleAsync(GetVerifiedTagTreeQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string[]>> HandleAsync(GetVerifiedTagTreeQuery message, CancellationToken cancellationToken = default)
         {
             if (!Tag.TryParse(message.RootTag, out var rootTag))
             {

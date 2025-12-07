@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Accounts.Queries
 {
     public class GetAccountByNameQueryHandler
-        : IQueryHandler<GetAccountByNameQuery, Result<AccountResponse>>
+        : IQueryHandler<GetAccountByNameQuery, ValueResult<AccountResponse>>
     {
         private readonly IDbConnection _db;
 
@@ -16,7 +16,7 @@ namespace YssWebstoreApi.Features.Accounts.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<AccountResponse>> HandleAsync(GetAccountByNameQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<AccountResponse>> HandleAsync(GetAccountByNameQuery message, CancellationToken cancellationToken = default)
         {
             var account = await _db.QuerySingleOrDefaultAsync<AccountResponse>(
                 """

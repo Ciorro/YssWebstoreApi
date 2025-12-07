@@ -29,9 +29,9 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchProjects(ProjectSearchRequest searchRequest)
+        public async Task<ValueResult<Page<ProjectSearchResult>>> SearchProjects(ProjectSearchRequest searchRequest)
         {
-            Result<Page<ProjectSearchResult>> result = await _queryMediator.QueryAsync(
+            ValueResult<Page<ProjectSearchResult>> result = await _queryMediator.QueryAsync(
                 new SearchProjectsQuery()
                 {
                     SearchText = searchRequest.SearchQuery,
@@ -42,186 +42,126 @@ namespace YssWebstoreApi.Api.Controllers
                     SortOptions = searchRequest.SortOptions
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{id:Guid}")]
-        public async Task<IActionResult> GetProjectById(Guid id)
+        public async Task<ValueResult<ProjectResponse>> GetProjectById(Guid id)
         {
-            Result<ProjectResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<ProjectResponse> result = await _queryMediator.QueryAsync(
                 new GetProjectByIdQuery(id));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{slug}")]
-        public async Task<IActionResult> GetProjectBySlug(string slug)
+        public async Task<ValueResult<ProjectResponse>> GetProjectBySlug(string slug)
         {
-            Result<ProjectResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<ProjectResponse> result = await _queryMediator.QueryAsync(
                 new GetProjectBySlugQuery(slug));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("games"), Authorize]
-        public Task<IActionResult> CreateGameProject(CreateGameRequest request)
+        public Task<ValueResult<Guid>> CreateGameProject(CreateGameRequest request)
             => CreateProject(request);
 
         [HttpPost("tools"), Authorize]
-        public Task<IActionResult> CreateToolProject(CreateToolRequest request)
+        public Task<ValueResult<Guid>> CreateToolProject(CreateToolRequest request)
             => CreateProject(request);
 
         [HttpPost("assets"), Authorize]
-        public Task<IActionResult> CreateAssetProject(CreateAssetRequest request)
+        public Task<ValueResult<Guid>> CreateAssetProject(CreateAssetRequest request)
             => CreateProject(request);
 
-        private async Task<IActionResult> CreateProject(CreateProjectRequest request)
+        private async Task<ValueResult<Guid>> CreateProject(CreateProjectRequest request)
         {
-            Result<Guid> result = await _commandMediator.SendAsync(
+            ValueResult<Guid> result = await _commandMediator.SendAsync(
                 new CreateProjectCommand(User.GetAccountId(), request.Name, request.Description)
                 {
                     Tags = request.GetTags()
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}"), Authorize]
-        public async Task<IActionResult> DeleteProject(Guid projectId)
+        public async Task<Result> DeleteProject(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteProjectCommand(User.GetAccountId(), projectId));
-            
-            if (result.Success)
-            {
-                return NoContent();
-            }
 
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{projectId:Guid}/icon"), Authorize]
-        public async Task<IActionResult> UploadIcon(Guid projectId, IFormFile file)
+        public async Task<ValueResult<string>> UploadIcon(Guid projectId, IFormFile file)
         {
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new UploadIconCommand(User.GetAccountId(), projectId, file));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}/icon"), Authorize]
-        public async Task<IActionResult> DeleteIcon(Guid projectId)
+        public async Task<Result> DeleteIcon(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteIconCommand(User.GetAccountId(), projectId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{projectId:Guid}/banner"), Authorize]
-        public async Task<IActionResult> UploadBanner(Guid projectId, IFormFile file)
+        public async Task<ValueResult<string>> UploadBanner(Guid projectId, IFormFile file)
         {
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new UploadBannerCommand(User.GetAccountId(), projectId, file));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}/banner"), Authorize]
-        public async Task<IActionResult> DeleteBanner(Guid projectId)
+        public async Task<Result> DeleteBanner(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteBannerCommand(User.GetAccountId(), projectId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{projectId:Guid}/images"), Authorize]
-        public async Task<IActionResult> UploadImage(Guid projectId, IFormFile file)
+        public async Task<ValueResult<string>> UploadImage(Guid projectId, IFormFile file)
         {
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new UploadImageCommand(User.GetAccountId(), projectId, file));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}/images/{imageId:Guid}"), Authorize]
-        public async Task<IActionResult> DeleteImage(Guid projectId, Guid imageId)
+        public async Task<Result> DeleteImage(Guid projectId, Guid imageId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteImageCommand(User.GetAccountId(), projectId, imageId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPut("{projectId:Guid}/images/{imageId:Guid}/order"), Authorize]
-        public async Task<IActionResult> ReorderImage(Guid projectId, Guid imageId, [FromBody] int newOrder)
+        public async Task<Result> ReorderImage(Guid projectId, Guid imageId, [FromBody] int newOrder)
         {
             Result result = await _commandMediator.SendAsync(
                 new ReorderImageCommand(User.GetAccountId(), projectId, imageId, newOrder));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{projectId:Guid}/packages"), Authorize]
-        public async Task<IActionResult> UploadPackage(Guid projectId, UploadPackageRequest request)
+        public async Task<ValueResult<Guid>> UploadPackage(Guid projectId, UploadPackageRequest request)
         {
-            Result<Guid> result = await _commandMediator.SendAsync(
+            ValueResult<Guid> result = await _commandMediator.SendAsync(
                 new UploadPackageCommand
                 {
                     AccountId = User.GetAccountId(),
@@ -232,30 +172,20 @@ namespace YssWebstoreApi.Api.Controllers
                     TargetOS = request.TargetOS
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}/packages/{packageId:Guid}"), Authorize]
-        public async Task<IActionResult> DeletePackage(Guid projectId, Guid packageId)
+        public async Task<Result> DeletePackage(Guid projectId, Guid packageId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeletePackageCommand(User.GetAccountId(), projectId, packageId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPut("{projectId:Guid}/packages/{packageId:Guid}"), Authorize]
-        public async Task<IActionResult> UpdatePackage(Guid projectId, Guid packageId, UpdatePackageRequest request)
+        public async Task<Result> UpdatePackage(Guid projectId, Guid packageId, UpdatePackageRequest request)
         {
             Result result = await _commandMediator.SendAsync(
                 new UpdatePackageCommand
@@ -266,30 +196,20 @@ namespace YssWebstoreApi.Api.Controllers
                     Name = request.Name
                 });
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{projectId:Guid}/packages")]
-        public async Task<IActionResult> GetProjectPackages(Guid projectId)
+        public async Task<ValueResult<IList<PackageResponse>>> GetProjectPackages(Guid projectId)
         {
-            Result<IList<PackageResponse>> result = await _queryMediator.QueryAsync(
+            ValueResult<IList<PackageResponse>> result = await _queryMediator.QueryAsync(
                 new GetProjectPackagesQuery(projectId));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{projectId:Guid}/packages/{packageId:Guid}/download")]
-        public async Task<IActionResult> DownloadPackage(Guid projectId, Guid packageId)
+        public async Task<ValueResult<string>> DownloadPackage(Guid projectId, Guid packageId)
         {
             Guid? accountId = null;
 
@@ -298,46 +218,31 @@ namespace YssWebstoreApi.Api.Controllers
                 accountId = User.GetAccountId();
             }
 
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new DownloadPackageCommand(projectId, packageId)
                 {
                     AccountId = accountId
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{projectId:Guid}/pin"), Authorize]
-        public async Task<IActionResult> PinProject(Guid projectId)
+        public async Task<Result> PinProject(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                 new SetProjectPinnedCommand(User.GetAccountId(), projectId, true));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{projectId:Guid}/pin"), Authorize]
-        public async Task<IActionResult> UnpinProject(Guid projectId)
+        public async Task<Result> UnpinProject(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                 new SetProjectPinnedCommand(User.GetAccountId(), projectId, false));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
     }
 }

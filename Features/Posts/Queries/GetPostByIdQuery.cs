@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Queries
 {
-    public class GetPostByIdQuery(Guid postId) : IQuery<Result<PostResponse>>
+    public class GetPostByIdQuery(Guid postId) : IQuery<ValueResult<PostResponse>>
     {
         public Guid PostId { get; } = postId;
     }

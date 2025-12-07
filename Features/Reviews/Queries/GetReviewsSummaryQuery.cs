@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Reviews.Queries
 {
-    public class GetReviewsSummaryQuery(Guid projectId) : IQuery<Result<ReviewsSummaryResponse>>
+    public class GetReviewsSummaryQuery(Guid projectId) : IQuery<ValueResult<ReviewsSummaryResponse>>
     {
         public Guid ProjectId { get; } = projectId;
     }

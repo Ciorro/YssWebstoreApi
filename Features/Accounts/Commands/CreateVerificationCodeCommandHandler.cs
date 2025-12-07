@@ -6,7 +6,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Accounts.Commands
 {
     public class CreateVerificationCodeCommandHandler
-        : ICommandHandler<CreateVerificationCodeCommand, Result<string>>
+        : ICommandHandler<CreateVerificationCodeCommand, ValueResult<string>>
     {
         private readonly IAccountRepository _accountRepository;
         private readonly IConfiguration _configuration;
@@ -19,7 +19,7 @@ namespace YssWebstoreApi.Features.Accounts.Commands
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<string>> HandleAsync(CreateVerificationCodeCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string>> HandleAsync(CreateVerificationCodeCommand message, CancellationToken cancellationToken = default)
         {
             var account = await _accountRepository.GetAsync(message.AccountId);
 

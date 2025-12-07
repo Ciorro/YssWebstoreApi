@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Queries
 {
-    public class GetAccountByNameQuery(string uniqueName) : IQuery<Result<AccountResponse>>
+    public class GetAccountByNameQuery(string uniqueName) : IQuery<ValueResult<AccountResponse>>
     {
         public string UniqueName { get; set; } = uniqueName;
         public Guid? FollowedBy { get; set; }

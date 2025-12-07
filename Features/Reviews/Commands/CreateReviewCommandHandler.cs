@@ -6,7 +6,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Reviews.Commands
 {
     public class CreateReviewCommandHandler
-        : ICommandHandler<CreateReviewCommand, Result<Guid>>
+        : ICommandHandler<CreateReviewCommand, ValueResult<Guid>>
     {
         private readonly IRepository<Review> _reviewRepository;
         private readonly TimeProvider _timeProvider;
@@ -17,7 +17,7 @@ namespace YssWebstoreApi.Features.Reviews.Commands
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<Guid>> HandleAsync(CreateReviewCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<Guid>> HandleAsync(CreateReviewCommand message, CancellationToken cancellationToken = default)
         {
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
 

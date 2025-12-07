@@ -24,9 +24,9 @@ namespace YssWebstoreApi.Api.Controllers
 
 
         [HttpPost("signup")]
-        public async Task<IActionResult> SignUp(SignUpInformation signUpInfo)
+        public async Task<ValueResult<Guid>> SignUp(SignUpInformation signUpInfo)
         {
-            Result<Guid> result = await _commandMediator.SendAsync(
+            ValueResult<Guid> result = await _commandMediator.SendAsync(
                 new CreateAccountCommand()
                 {
                     Email = signUpInfo.Email,
@@ -35,18 +35,13 @@ namespace YssWebstoreApi.Api.Controllers
                     DisplayName = signUpInfo.DisplayName
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return Conflict();
+            return result;
         }
 
         [HttpPost("signin")]
-        public async Task<IActionResult> SignIn(SignInCredentials signInCredentials)
+        public async Task<ValueResult<TokenCredentials>> SignIn(SignInCredentials signInCredentials)
         {
-            Result<TokenCredentials> result = await _commandMediator.SendAsync(
+            ValueResult<TokenCredentials> result = await _commandMediator.SendAsync(
                 new CreateSessionCommand()
                 {
                     Email = signInCredentials.Email,
@@ -54,74 +49,52 @@ namespace YssWebstoreApi.Api.Controllers
                     DeviceInfo = signInCredentials.DeviceInfo,
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return Unauthorized();
+            return result;
         }
 
         [HttpPost("signout"), Authorize, AllowUnverified]
-        public async Task<IActionResult> SignOutSession([FromBody] string sessionToken)
+        public async Task<Result> SignOutSession([FromBody] string sessionToken)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteSessionCommand(User.GetAccountId(), sessionToken));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("signout-all"), Authorize, AllowUnverified]
-        public async Task<IActionResult> SignOutEverywhere()
+        public async Task<Result> SignOutEverywhere()
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteAllSessionsCommand(User.GetAccountId()));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(SignInSessionToken signInSessionToken)
+        public async Task<ValueResult<TokenCredentials>> Refresh(SignInSessionToken signInSessionToken)
         {
-            Result<TokenCredentials> result = await _commandMediator.SendAsync(
+            ValueResult<TokenCredentials> result = await _commandMediator.SendAsync(
                 new UpdateSessionCommand(signInSessionToken.AccountId, signInSessionToken.SessionToken));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return Unauthorized();
+            return result;
         }
 
         [HttpPost("verify"), Authorize, AllowUnverified]
-        public async Task<IActionResult> Verify([FromBody] string verificationCode)
+        public async Task<Result> Verify([FromBody] string verificationCode)
         {
             Result result = await _commandMediator.SendAsync(
                 new VerifyAccountCommand(User.GetAccountId(), verificationCode));
 
-            return result.Success ?
-                NoContent() : BadRequest();
+            return result;
         }
 
         [HttpPost("generate-verification-code"), Authorize, AllowUnverified]
-        public async Task<IActionResult> GenerateVerificationCode()
+        public async Task<Result> GenerateVerificationCode()
         {
             Result result = await _commandMediator.SendAsync(
                 new CreateVerificationCodeCommand(User.GetAccountId()));
 
-            return result.Success ?
-                NoContent() : BadRequest();
+            return result;
         }
     }
 }

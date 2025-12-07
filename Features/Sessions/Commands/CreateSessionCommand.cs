@@ -5,7 +5,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Sessions.Commands
 {
-    public class CreateSessionCommand : AuthenticatedCommand, ICommand<Result<TokenCredentials>>
+    public class CreateSessionCommand : AuthenticatedCommand, ICommand<ValueResult<TokenCredentials>>
     {
         public string? DeviceInfo { get; set; }
     }

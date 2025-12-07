@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Posts.Commands
 {
-    public class CreatePostCommand : ICommand<Result<Guid>>
+    public class CreatePostCommand : ICommand<ValueResult<Guid>>
     {
         public Guid AccountId { get; }
         public string Title { get; }

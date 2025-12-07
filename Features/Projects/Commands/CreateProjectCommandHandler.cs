@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class CreateProjectCommandHandler
-        : ICommandHandler<CreateProjectCommand, Result<Guid>>
+        : ICommandHandler<CreateProjectCommand, ValueResult<Guid>>
     {
         private readonly IRepository<Project> _projectRepository;
         private readonly TimeProvider _timeProvider;
@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<Guid>> HandleAsync(CreateProjectCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<Guid>> HandleAsync(CreateProjectCommand message, CancellationToken cancellationToken = default)
         {
             var creationTime = _timeProvider.GetUtcNow().UtcDateTime;
 

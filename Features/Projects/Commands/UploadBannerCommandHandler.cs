@@ -8,7 +8,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class UploadBannerCommandHandler
-        : ICommandHandler<UploadBannerCommand, Result<string>>
+        : ICommandHandler<UploadBannerCommand, ValueResult<string>>
     {
         private readonly IRepository<Project> _projectRepository;
         private readonly IProjectStorage _projectStorage;
@@ -19,7 +19,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             _projectStorage = projectStorage;
         }
 
-        public async Task<Result<string>> HandleAsync(UploadBannerCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string>> HandleAsync(UploadBannerCommand message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
             if (project is null)

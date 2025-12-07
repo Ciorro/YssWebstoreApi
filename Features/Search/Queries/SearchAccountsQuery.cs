@@ -5,7 +5,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
 {
-    public class SearchAccountsQuery : SearchQuery<Result<Page<AccountResponse>>>
+    public class SearchAccountsQuery : SearchQuery<ValueResult<Page<AccountResponse>>>
     {
         public Guid? FollowedBy { get; set; }
         public Guid? Following { get; set; }

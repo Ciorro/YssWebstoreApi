@@ -8,7 +8,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Posts.Commands
 {
     public class UploadCoverImageCommandHandler
-        : ICommandHandler<UploadCoverImageCommand, Result<string>>
+        : ICommandHandler<UploadCoverImageCommand, ValueResult<string>>
     {
         private readonly IRepository<Post> _postRepository;
         private readonly IPostImageStorage _postImageStorage;
@@ -19,7 +19,7 @@ namespace YssWebstoreApi.Features.Posts.Commands
             _postImageStorage = postImageStorage;
         }
 
-        public async Task<Result<string>> HandleAsync(UploadCoverImageCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string>> HandleAsync(UploadCoverImageCommand message, CancellationToken cancellationToken = default)
         {
             var post = await _postRepository.GetAsync(message.PostId);
 

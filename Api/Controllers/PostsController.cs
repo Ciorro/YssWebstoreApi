@@ -27,9 +27,9 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchPosts(SearchPostRequest searchRequest)
+        public async Task<ValueResult<Page<PostResponse>>> SearchPosts(SearchPostRequest searchRequest)
         {
-            Result<Page<PostResponse>> result = await _queryMediator.QueryAsync(
+            ValueResult<Page<PostResponse>> result = await _queryMediator.QueryAsync(
                 new SearchPostsQuery()
                 {
                     SearchText = searchRequest.SearchQuery,
@@ -39,47 +39,32 @@ namespace YssWebstoreApi.Api.Controllers
                     SortOptions = searchRequest.SortOptions
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{postId:Guid}")]
-        public async Task<IActionResult> GetPost(Guid postId)
+        public async Task<ValueResult<PostResponse>> GetPost(Guid postId)
         {
-            Result<PostResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<PostResponse> result = await _queryMediator.QueryAsync(
                 new GetPostByIdQuery(postId));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return NotFound();
+            return result;
         }
 
         [HttpPost, Authorize]
-        public async Task<IActionResult> CreatePost(CreatePostRequest createPost)
+        public async Task<ValueResult<Guid>> CreatePost(CreatePostRequest createPost)
         {
-            Result<Guid> result = await _commandMediator.SendAsync(
+            ValueResult<Guid> result = await _commandMediator.SendAsync(
                 new CreatePostCommand(User.GetAccountId(), createPost.Title, createPost.Content)
                 {
                     TargetProjectId = createPost.TargetProjectId
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest(result.Error);
+            return result;
         }
 
         [HttpPut("{postId:Guid}"), Authorize]
-        public async Task<IActionResult> UpdatePost(Guid postId, UpdatePostRequest updatePost)
+        public async Task<Result> UpdatePost(Guid postId, UpdatePostRequest updatePost)
         {
             Result result = await _commandMediator.SendAsync(
                 new UpdatePostCommand(User.GetAccountId(), postId, updatePost.Title, updatePost.Content)
@@ -87,54 +72,34 @@ namespace YssWebstoreApi.Api.Controllers
                     TargetProjectId = updatePost.TargetProjectId
                 });
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{postId:Guid}"), Authorize]
-        public async Task<IActionResult> DeletePost(Guid postId)
+        public async Task<Result> DeletePost(Guid postId)
         {
             Result result = await _commandMediator.SendAsync(
                 new DeletePostCommand(User.GetAccountId(), postId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{postId:Guid}/image"), Authorize]
-        public async Task<IActionResult> UploadCoverImage(Guid postId, IFormFile file)
+        public async Task<ValueResult<string>> UploadCoverImage(Guid postId, IFormFile file)
         {
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new UploadCoverImageCommand(User.GetAccountId(), postId, file));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{postId:Guid}/image"), Authorize]
-        public async Task<IActionResult> DeleteCoverImage(Guid postId)
+        public async Task<Result> DeleteCoverImage(Guid postId)
         {
             Result result = await _commandMediator.SendAsync(
                 new RemoveImageFromPostCommand(User.GetAccountId(), postId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
     }
 }

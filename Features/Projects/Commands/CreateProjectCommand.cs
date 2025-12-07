@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class CreateProjectCommand : ICommand<Result<Guid>>
+    public class CreateProjectCommand : ICommand<ValueResult<Guid>>
     {
         public Guid AccountId { get; }
         public string Name { get; }

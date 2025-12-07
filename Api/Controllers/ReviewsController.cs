@@ -26,9 +26,9 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchReviews(Guid projectId, SearchReviewsRequest request)
+        public async Task<ValueResult<Page<ReviewResponse>>> SearchReviews(Guid projectId, SearchReviewsRequest request)
         {
-            Result<Page<ReviewResponse>> result = await _queryMediator.QueryAsync(
+            ValueResult<Page<ReviewResponse>> result = await _queryMediator.QueryAsync(
                 new SearchReviewsQuery()
                 {
                     ProjectId = projectId,
@@ -38,47 +38,32 @@ namespace YssWebstoreApi.Api.Controllers
                     SortOptions = request.SortOptions
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("summary")]
-        public async Task<IActionResult> GetReviewsSummary(Guid projectId)
+        public async Task<ValueResult<ReviewsSummaryResponse>> GetReviewsSummary(Guid projectId)
         {
-            Result<ReviewsSummaryResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<ReviewsSummaryResponse> result = await _queryMediator.QueryAsync(
                 new GetReviewsSummaryQuery(projectId));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost, Authorize]
-        public async Task<IActionResult> CreateReview(Guid projectId, CreateReviewRequest request)
+        public async Task<ValueResult<Guid>> CreateReview(Guid projectId, CreateReviewRequest request)
         {
-            Result<Guid> result = await _commandMediator.SendAsync(
+            ValueResult<Guid> result = await _commandMediator.SendAsync(
                 new CreateReviewCommand(User.GetAccountId(), projectId, request.Rate)
                 {
                     Content = request.Content
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPut, Authorize]
-        public async Task<IActionResult> UpdateReview(Guid projectId, UpdateReviewRequest request)
+        public async Task<Result> UpdateReview(Guid projectId, UpdateReviewRequest request)
         {
             Result result = await _commandMediator.SendAsync(
                new UpdateReviewCommand(User.GetAccountId(), projectId, request.Rate)
@@ -86,26 +71,16 @@ namespace YssWebstoreApi.Api.Controllers
                    Content = request.Content
                });
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete, Authorize]
-        public async Task<IActionResult> DeleteReview(Guid projectId)
+        public async Task<Result> DeleteReview(Guid projectId)
         {
             Result result = await _commandMediator.SendAsync(
                new DeleteReviewCommand(User.GetAccountId(), projectId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
     }
 }

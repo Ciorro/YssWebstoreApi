@@ -6,7 +6,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Tags.Queries
 {
     public class GetVerifiedTagsQueryHandler
-        : IQueryHandler<GetVerifiedTagsQuery, Result<string[]>>
+        : IQueryHandler<GetVerifiedTagsQuery, ValueResult<string[]>>
     {
         private readonly IDbConnection _db;
 
@@ -15,7 +15,7 @@ namespace YssWebstoreApi.Features.Tags.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<string[]>> HandleAsync(GetVerifiedTagsQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string[]>> HandleAsync(GetVerifiedTagsQuery message, CancellationToken cancellationToken = default)
         {
             if (!string.IsNullOrEmpty(message.Group) && !IsValidTagGroup(message.Group))
             {

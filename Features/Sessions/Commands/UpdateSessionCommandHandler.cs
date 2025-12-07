@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Sessions.Commands
 {
     public class UpdateSessionCommandHandler
-        : ICommandHandler<UpdateSessionCommand, Result<TokenCredentials>>
+        : ICommandHandler<UpdateSessionCommand, ValueResult<TokenCredentials>>
     {
         private readonly IAccountRepository _accountRepository;
         private readonly ISessionService _sessionService;
@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Features.Sessions.Commands
             _sessionService = sessionService;
         }
 
-        public async Task<Result<TokenCredentials>> HandleAsync(UpdateSessionCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<TokenCredentials>> HandleAsync(UpdateSessionCommand message, CancellationToken cancellationToken = default)
         {
             var account = await _accountRepository.GetAsync(message.AccountId);
             var session = account?.Sessions.FirstOrDefault(x => x.SessionToken == message.SessionToken);

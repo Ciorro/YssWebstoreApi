@@ -9,7 +9,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class UploadPackageCommandHandler
-        : ICommandHandler<UploadPackageCommand, Result<Guid>>
+        : ICommandHandler<UploadPackageCommand, ValueResult<Guid>>
     {
         private readonly IRepository<Project> _projectRepository;
         private readonly IProjectStorage _projectStorage;
@@ -20,7 +20,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             _projectStorage = projectStorage;
         }
 
-        public async Task<Result<Guid>> HandleAsync(UploadPackageCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<Guid>> HandleAsync(UploadPackageCommand message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
 

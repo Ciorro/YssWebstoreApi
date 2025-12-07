@@ -27,9 +27,9 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> SearchAccounts(SearchAccountRequest request)
+        public async Task<ValueResult<Page<AccountResponse>>> SearchAccounts(SearchAccountRequest request)
         {
-            Result<Page<AccountResponse>> result = await _queryMediator.QueryAsync(
+            ValueResult<Page<AccountResponse>> result = await _queryMediator.QueryAsync(
                 new SearchAccountsQuery
                 {
                     FollowedBy = request.FollowedBy,
@@ -39,47 +39,32 @@ namespace YssWebstoreApi.Api.Controllers
                     SortOptions = request.SortOptions
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpGet("{uniqueName}")]
-        public async Task<IActionResult> GetPublicAccountByUniqueName(string uniqueName)
+        public async Task<ValueResult<AccountResponse>> GetPublicAccountByUniqueName(string uniqueName)
         {
-            Result<AccountResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<AccountResponse> result = await _queryMediator.QueryAsync(
                 new GetAccountByNameQuery(uniqueName)
                 {
                     FollowedBy = User.GetOptionalAccountId()
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return NotFound();
+            return result;
         }
 
         [HttpGet("me"), Authorize, AllowUnverified]
-        public async Task<IActionResult> GetDetailedAccount()
+        public async Task<ValueResult<AccountResponse>> GetDetailedAccount()
         {
-            Result<AccountResponse> result = await _queryMediator.QueryAsync(
+            ValueResult<AccountResponse> result = await _queryMediator.QueryAsync(
                 new GetAccountByIdQuery(User.GetAccountId()));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return NotFound();
+            return result;
         }
 
         [HttpPut, Authorize]
-        public async Task<IActionResult> UpdateAccount(UpdateAccountRequest request)
+        public async Task<Result> UpdateAccount(UpdateAccountRequest request)
         {
             Result result = await _commandMediator.SendAsync(
                 new UpdateAccountCommand(User.GetAccountId(), request.DisplayName)
@@ -87,68 +72,43 @@ namespace YssWebstoreApi.Api.Controllers
                     StatusText = request.StatusText
                 });
 
-            if (result.Success)
-            {
-                return Ok();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("avatar"), Authorize]
-        public async Task<IActionResult> UploadAvatar(IFormFile file)
+        public async Task<ValueResult<string>> UploadAvatar(IFormFile file)
         {
-            Result<string> result = await _commandMediator.SendAsync(
+            ValueResult<string> result = await _commandMediator.SendAsync(
                 new UploadAvatarCommand(User.GetAccountId(), file));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("avatar"), Authorize]
-        public async Task<IActionResult> DeleteAvatar()
+        public async Task<Result> DeleteAvatar()
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteAvatarCommand(User.GetAccountId()));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpPost("{accountId:Guid}/follows"), Authorize]
-        public async Task<IActionResult> FollowAccount(Guid accountId)
+        public async Task<Result> FollowAccount(Guid accountId)
         {
             Result result = await _commandMediator.SendAsync(
                 new FollowAccountCommand(User.GetAccountId(), accountId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
 
         [HttpDelete("{accountId:Guid}/follows"), Authorize]
-        public async Task<IActionResult> UnfollowAccount(Guid accountId)
+        public async Task<Result> UnfollowAccount(Guid accountId)
         {
             Result result = await _commandMediator.SendAsync(
                 new UnfollowAccountCommand(User.GetAccountId(), accountId));
 
-            if (result.Success)
-            {
-                return NoContent();
-            }
-
-            return BadRequest();
+            return result;
         }
     }
 }

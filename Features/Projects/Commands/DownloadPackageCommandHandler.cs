@@ -9,7 +9,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class DownloadPackageCommandHandler
-        : ICommandHandler<DownloadPackageCommand, Result<string>>
+        : ICommandHandler<DownloadPackageCommand, ValueResult<string>>
     {
         private readonly IDbConnection _db;
         private readonly IRepository<Project> _projectRepository;
@@ -25,7 +25,7 @@ namespace YssWebstoreApi.Features.Projects.Commands
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<string>> HandleAsync(DownloadPackageCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<string>> HandleAsync(DownloadPackageCommand message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
             var package = project?.Packages.FirstOrDefault(x => x.Id == message.PackageId);

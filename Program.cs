@@ -8,6 +8,7 @@ using Npgsql;
 using System.Data;
 using System.Text;
 using System.Text.Json.Serialization;
+using YssWebstoreApi.Api.Fileters;
 using YssWebstoreApi.Persistance;
 using YssWebstoreApi.Setup;
 
@@ -48,8 +49,8 @@ namespace YssWebstoreApi
             builder.Services.AddSingleton<NpgsqlDataSource>(
                 _ =>
                 {
-                   var dataSourceBuilder = new NpgsqlDataSourceBuilder(
-                        config.GetConnectionString("DefaultConnection")!);
+                    var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                         config.GetConnectionString("DefaultConnection")!);
                     return dataSourceBuilder.Build();
                 });
             builder.Services.AddScoped<IDbConnection>(
@@ -57,7 +58,11 @@ namespace YssWebstoreApi
 
             builder.Services.AddCors();
             builder.Services.AddHttpClient();
-            builder.Services.AddControllers()
+            builder.Services
+                .AddControllers(config =>
+                {
+                    config.Filters.Add<ResultFilter>();
+                })
                 .AddJsonOptions(config =>
                 {
                     config.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());

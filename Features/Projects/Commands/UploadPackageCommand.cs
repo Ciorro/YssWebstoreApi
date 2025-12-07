@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class UploadPackageCommand : ICommand<Result<Guid>>
+    public class UploadPackageCommand : ICommand<ValueResult<Guid>>
     {
         public required Guid AccountId { get; init; }
         public required Guid ProjectId { get; init; }

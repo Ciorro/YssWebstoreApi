@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Commands
 {
-    public class DownloadPackageCommand : ICommand<Result<string>>
+    public class DownloadPackageCommand : ICommand<ValueResult<string>>
     {
         public Guid? AccountId { get; set; }
         public Guid ProjectId { get; set; }

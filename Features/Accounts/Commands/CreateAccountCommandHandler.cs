@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Accounts.Commands
 {
     public class CreateAccountCommandHandler
-        : ICommandHandler<CreateAccountCommand, Result<Guid>>
+        : ICommandHandler<CreateAccountCommand, ValueResult<Guid>>
     {
         private readonly IAccountRepository _accountRepository;
         private readonly TimeProvider _timeProvider;
@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Features.Accounts.Commands
             _timeProvider = timeProvider;
         }
 
-        public async Task<Result<Guid>> HandleAsync(CreateAccountCommand message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<Guid>> HandleAsync(CreateAccountCommand message, CancellationToken cancellationToken = default)
         {
             var creationDate = _timeProvider.GetUtcNow().UtcDateTime;
             var saltedPassword = new SaltedPassword(message.Password);

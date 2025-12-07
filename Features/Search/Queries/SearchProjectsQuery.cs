@@ -6,7 +6,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
 {
-    public class SearchProjectsQuery : SearchQuery<Result<Page<ProjectSearchResult>>>
+    public class SearchProjectsQuery : SearchQuery<ValueResult<Page<ProjectSearchResult>>>
     {
         public string? AccountName { get; init; }
         public TagCollection? Tags { get; init; }

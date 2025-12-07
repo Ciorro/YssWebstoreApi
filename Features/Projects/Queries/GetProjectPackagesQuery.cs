@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Projects.Queries
 {
-    public class GetProjectPackagesQuery(Guid projectId) : IQuery<Result<IList<PackageResponse>>>
+    public class GetProjectPackagesQuery(Guid projectId) : IQuery<ValueResult<IList<PackageResponse>>>
     {
         public Guid ProjectId { get; } = projectId;
     }

@@ -10,7 +10,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Search.Queries
 {
     public class SearchPostsQueryHandler
-        : IQueryHandler<SearchPostsQuery, Result<Page<PostResponse>>>
+        : IQueryHandler<SearchPostsQuery, ValueResult<Page<PostResponse>>>
     {
         private readonly IDbConnection _db;
 
@@ -19,7 +19,7 @@ namespace YssWebstoreApi.Features.Search.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<Page<PostResponse>>> HandleAsync(SearchPostsQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<Page<PostResponse>>> HandleAsync(SearchPostsQuery message, CancellationToken cancellationToken = default)
         {
             var allResultsIds = (await _db.QueryAsync<Guid>(message.GetCommandDefinition())).ToList();
             var limitedResultsIds = allResultsIds

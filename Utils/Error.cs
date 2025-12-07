@@ -1,12 +1,20 @@
 ﻿namespace YssWebstoreApi.Utils
 {
-    public record Error(string code, string message)
+    public record Error
     {
-        public string Code { get; } = code;
-        public string Message { get; } = message;
+        public string Code { get; }
+        public int HttpStatus { get; }
+        public string Message { get; }
 
-        public Error(string code)
-            : this(code, "")
+        public Error(string code, int httpStatus)
+            : this(code, httpStatus, "")
         { }
+
+        public Error(string code, int httpStatus, string message)
+        {
+            Code = code;
+            HttpStatus = httpStatus;
+            Message = message;
+        }
     }
 }

@@ -4,7 +4,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Sessions.Commands
 {
-    public class UpdateSessionCommand : ICommand<Result<TokenCredentials>>
+    public class UpdateSessionCommand : ICommand<ValueResult<TokenCredentials>>
     {
         public Guid AccountId { get; }
         public string SessionToken { get; }

@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Commands
 {
-    public class CreateAccountCommand : ICommand<Result<Guid>>
+    public class CreateAccountCommand : ICommand<ValueResult<Guid>>
     {
         public required string UniqueName { get; set; }
         public required string DisplayName { get; set; }

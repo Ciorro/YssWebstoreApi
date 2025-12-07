@@ -17,35 +17,25 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetAllVerifiedTags([FromQuery] string? group, [FromQuery] string? q)
+        public async Task<ValueResult<string[]>> GetAllVerifiedTags([FromQuery] string? group, [FromQuery] string? q)
         {
-            Result<string[]> result = await _queryMediator.QueryAsync(
+            ValueResult<string[]> result = await _queryMediator.QueryAsync(
                 new GetVerifiedTagsQuery()
                 {
                     Group = group,
                     SearchText = q
                 });
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest(result.Error);
+            return result;
         }
 
         [HttpGet("{tag}")]
-        public async Task<IActionResult> GetVerifiedTagTree(string tag)
+        public async Task<ValueResult<string[]>> GetVerifiedTagTree(string tag)
         {
-            Result<string[]> result = await _queryMediator.QueryAsync(
+            ValueResult<string[]> result = await _queryMediator.QueryAsync(
                 new GetVerifiedTagTreeQuery(tag));
 
-            if (result.TryGetValue(out var value))
-            {
-                return Ok(value);
-            }
-
-            return BadRequest();
+            return result;
         }
     }
 }

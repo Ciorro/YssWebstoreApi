@@ -8,7 +8,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Queries
 {
     internal class GetProjectByIdQueryHandler
-        : IQueryHandler<GetProjectByIdQuery, Result<ProjectResponse>>
+        : IQueryHandler<GetProjectByIdQuery, ValueResult<ProjectResponse>>
     {
         private readonly IDbConnection _db;
 
@@ -17,7 +17,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<ProjectResponse>> HandleAsync(GetProjectByIdQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<ProjectResponse>> HandleAsync(GetProjectByIdQuery message, CancellationToken cancellationToken = default)
         {
             using var results = await _db.QueryMultipleAsync(
                 """

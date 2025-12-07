@@ -3,7 +3,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Accounts.Commands
 {
-    public class UploadAvatarCommand : ICommand<Result<string>>
+    public class UploadAvatarCommand : ICommand<ValueResult<string>>
     {
         public Guid AccountId { get; }
         public IFormFile File { get; }

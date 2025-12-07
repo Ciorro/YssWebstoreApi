@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Reviews.Queries
 {
     public class GetReviewsSummaryQueryHandler
-        : IQueryHandler<GetReviewsSummaryQuery, Result<ReviewsSummaryResponse>>
+        : IQueryHandler<GetReviewsSummaryQuery, ValueResult<ReviewsSummaryResponse>>
     {
         private readonly IDbConnection _db;
 
@@ -16,7 +16,7 @@ namespace YssWebstoreApi.Features.Reviews.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<ReviewsSummaryResponse>> HandleAsync(GetReviewsSummaryQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<ReviewsSummaryResponse>> HandleAsync(GetReviewsSummaryQuery message, CancellationToken cancellationToken = default)
         {
             var rateCounts = await _db.QueryAsync<(int rate, int count)>(
                 """

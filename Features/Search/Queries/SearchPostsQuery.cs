@@ -5,7 +5,7 @@ using YssWebstoreApi.Utils;
 
 namespace YssWebstoreApi.Features.Search.Queries
 {
-    public class SearchPostsQuery : SearchQuery<Result<Page<PostResponse>>>
+    public class SearchPostsQuery : SearchQuery<ValueResult<Page<PostResponse>>>
     {
         public string? AccountName { get; init; }
         public Guid? TargetProjectId { get; init; }

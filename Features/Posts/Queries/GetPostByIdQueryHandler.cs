@@ -9,7 +9,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Posts.Queries
 {
     public class GetPostByIdQueryHandler
-        : IQueryHandler<GetPostByIdQuery, Result<PostResponse>>
+        : IQueryHandler<GetPostByIdQuery, ValueResult<PostResponse>>
     {
         private readonly IDbConnection _db;
 
@@ -18,7 +18,7 @@ namespace YssWebstoreApi.Features.Posts.Queries
             _db = dbConnection;
         }
 
-        public async Task<Result<PostResponse>> HandleAsync(GetPostByIdQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<PostResponse>> HandleAsync(GetPostByIdQuery message, CancellationToken cancellationToken = default)
         {
             using var results = await _db.QueryMultipleAsync(
                 """

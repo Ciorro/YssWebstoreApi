@@ -7,7 +7,7 @@ using YssWebstoreApi.Utils;
 namespace YssWebstoreApi.Features.Projects.Queries
 {
     public class GetProjectPackagesQueryHandler
-        : IQueryHandler<GetProjectPackagesQuery, Result<IList<PackageResponse>>>
+        : IQueryHandler<GetProjectPackagesQuery, ValueResult<IList<PackageResponse>>>
     {
         private readonly IRepository<Project> _projectRepository;
 
@@ -16,7 +16,7 @@ namespace YssWebstoreApi.Features.Projects.Queries
             _projectRepository = projectRepository;
         }
 
-        public async Task<Result<IList<PackageResponse>>> HandleAsync(GetProjectPackagesQuery message, CancellationToken cancellationToken = default)
+        public async Task<ValueResult<IList<PackageResponse>>> HandleAsync(GetProjectPackagesQuery message, CancellationToken cancellationToken = default)
         {
             var project = await _projectRepository.GetAsync(message.ProjectId);
             if (project is null)
