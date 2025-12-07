@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using YssWebstoreApi.Api.DTO.Packages;
 using YssWebstoreApi.Api.DTO.Projects;
+using YssWebstoreApi.Api.DTO.Resources;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Extensions;
@@ -127,6 +128,15 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new DeleteBannerCommand(User.GetAccountId(), projectId));
+
+            return result;
+        }
+
+        [HttpGet("{projectId:Guid}/images")]
+        public async Task<ValueResult<IList<ResourceResponse>>> GetProjectImages(Guid projectId)
+        {
+            ValueResult<IList<ResourceResponse>> result = await _queryMediator.QueryAsync(
+                new GetProjectImagesQuery(projectId));
 
             return result;
         }
