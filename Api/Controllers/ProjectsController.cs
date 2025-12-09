@@ -169,6 +169,8 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpPost("{projectId:Guid}/packages"), Authorize]
+        [RequestSizeLimit(104_857_600)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104_857_600)]
         public async Task<ValueResult<Guid>> UploadPackage(Guid projectId, UploadPackageRequest request)
         {
             ValueResult<Guid> result = await _commandMediator.SendAsync(
