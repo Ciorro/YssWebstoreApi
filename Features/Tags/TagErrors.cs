@@ -10,5 +10,8 @@ namespace YssWebstoreApi.Features.Tags
 
         public static readonly Error InvalidGroupName =
             new Error(ErrorHelper.GetName(), (int)HttpStatusCode.BadRequest, "The tag group name was invalid.");
+
+        public static readonly Error ProjectTypeMismatch =
+            new Error(ErrorHelper.GetName(), (int)HttpStatusCode.BadRequest, "The project type tags are not the same.");
     }
 }

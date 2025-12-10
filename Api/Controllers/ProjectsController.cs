@@ -65,21 +65,44 @@ namespace YssWebstoreApi.Api.Controllers
         }
 
         [HttpPost("games"), Authorize]
-        public Task<ValueResult<Guid>> CreateGameProject(CreateGameRequest request)
+        public Task<Result> CreateGameProject(CreateGameRequest request)
             => CreateProject(request);
 
         [HttpPost("tools"), Authorize]
-        public Task<ValueResult<Guid>> CreateToolProject(CreateToolRequest request)
+        public Task<Result> CreateToolProject(CreateToolRequest request)
             => CreateProject(request);
 
         [HttpPost("assets"), Authorize]
-        public Task<ValueResult<Guid>> CreateAssetProject(CreateAssetRequest request)
+        public Task<Result> CreateAssetProject(CreateAssetRequest request)
             => CreateProject(request);
 
-        private async Task<ValueResult<Guid>> CreateProject(CreateProjectRequest request)
+        private async Task<Result> CreateProject(CreateProjectRequest request)
         {
-            ValueResult<Guid> result = await _commandMediator.SendAsync(
+            Result result = await _commandMediator.SendAsync(
                 new CreateProjectCommand(User.GetAccountId(), request.Name, request.Description)
+                {
+                    Tags = request.GetTags()
+                });
+
+            return result;
+        }
+
+        [HttpPut("games/{projectId:Guid}"), Authorize]
+        public Task<Result> UpdateGameProject(UpdateGameRequest request, Guid projectId)
+            => UpdateProject(request, projectId);
+
+        [HttpPut("tools/{projectId:Guid}"), Authorize]
+        public Task<Result> UpdateToolProject(UpdateToolRequest request, Guid projectId)
+            => UpdateProject(request, projectId);
+
+        [HttpPut("assets/{projectId:Guid}"), Authorize]
+        public Task<Result> UpdateAssetProject(UpdateAssetRequest request, Guid projectId)
+            => UpdateProject(request, projectId);
+
+        private async Task<Result> UpdateProject(UpdateProjectRequest request, Guid projectId)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new UpdateProjectCommand(User.GetAccountId(), projectId, request.Name, request.Description)
                 {
                     Tags = request.GetTags()
                 });
@@ -171,9 +194,9 @@ namespace YssWebstoreApi.Api.Controllers
         [HttpPost("{projectId:Guid}/packages"), Authorize]
         [RequestSizeLimit(104_857_600)]
         [RequestFormLimits(MultipartBodyLengthLimit = 104_857_600)]
-        public async Task<ValueResult<Guid>> UploadPackage(Guid projectId, UploadPackageRequest request)
+        public async Task<Result> UploadPackage(Guid projectId, UploadPackageRequest request)
         {
-            ValueResult<Guid> result = await _commandMediator.SendAsync(
+            Result result = await _commandMediator.SendAsync(
                 new UploadPackageCommand
                 {
                     AccountId = User.GetAccountId(),
