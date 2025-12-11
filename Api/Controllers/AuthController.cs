@@ -6,6 +6,7 @@ using YssWebstoreApi.Api.DTO.Auth;
 using YssWebstoreApi.Api.Middlewares.Attributes;
 using YssWebstoreApi.Extensions;
 using YssWebstoreApi.Features.Accounts.Commands;
+using YssWebstoreApi.Features.Auth.Commands;
 using YssWebstoreApi.Features.Sessions.Commands;
 using YssWebstoreApi.Utils;
 
@@ -93,6 +94,15 @@ namespace YssWebstoreApi.Api.Controllers
         {
             Result result = await _commandMediator.SendAsync(
                 new CreateVerificationCodeCommand(User.GetAccountId()));
+
+            return result;
+        }
+
+        [HttpPost("change-password"), Authorize, AllowUnverified]
+        public async Task<Result> ChangePassword(ChangePasswordRequest request)
+        {
+            Result result = await _commandMediator.SendAsync(
+                new ChangePasswordCommand(User.GetAccountId(), request.OldPassword, request.NewPassword));
 
             return result;
         }
