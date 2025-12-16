@@ -279,5 +279,18 @@ namespace YssWebstoreApi.Api.Controllers
 
             return result;
         }
+
+        [HttpGet("{projectId:Guid}/stats")]
+        public async Task<ValueResult<StatisticsResponse>> GetProjectStats(Guid projectId, StatisticsRequest? request)
+        {
+            ValueResult<StatisticsResponse> result = await _queryMediator.QueryAsync(
+                new GetStatsByProjectIdQuery(projectId)
+                {
+                    RangeStart = request?.RangeStart ?? DateOnly.MinValue,
+                    RangeEnd = request?.RangeEnd ?? DateOnly.MaxValue
+                });
+
+            return result;
+        }
     }
 }

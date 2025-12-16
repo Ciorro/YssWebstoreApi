@@ -9,6 +9,7 @@ namespace YssWebstoreApi.Setup
         public static void InitDatabase(this IApplicationBuilder builder)
         {
             SqlMapper.AddTypeHandler(new TagHandler());
+            SqlMapper.AddTypeHandler(new DateOnlyHandler());
 
             builder.ApplicationServices.GetRequiredService<IDatabaseInitializer>()
                 .Initialize();
