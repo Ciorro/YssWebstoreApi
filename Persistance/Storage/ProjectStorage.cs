@@ -118,14 +118,23 @@ namespace YssWebstoreApi.Persistance.Storage
             };
         }
 
-        public async Task<string?> GetPackageUrl(string path)
-        {
-            return await _storage.GetPrivateUrl(PackagesBucket, path, TimeSpan.FromSeconds(30));
-        }
+        public async Task DeleteIcon(string path) 
+            => await _imageStorage.Delete(path);
+
+        public async Task DeleteBanner(string path)
+            => await _imageStorage.Delete(path);
+
+        public async Task DeleteImage(string path)
+            => await _imageStorage.Delete(path);
 
         public async Task DeletePackage(string path)
         {
             await _storage.Delete(PackagesBucket, path);
+        }
+
+        public async Task<string?> GetPackageUrl(string path)
+        {
+            return await _storage.GetPrivateUrl(PackagesBucket, path, TimeSpan.FromSeconds(30));
         }
     }
 }

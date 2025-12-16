@@ -9,7 +9,10 @@ namespace YssWebstoreApi.Persistance.Storage.Interfaces
         Task<Resource> UploadBanner(Guid projectId, IFormFile file);
         Task<Resource> UploadImage(Guid projectId, IFormFile file);
         Task<Resource> UploadPackage(Guid projectId, PackageInfo packageInfo, IFormFile file);
-        Task<string> GetPackageUrl(string path);
+        Task DeleteIcon(string path);
+        Task DeleteBanner(string path);
+        Task DeleteImage(string path);
         Task DeletePackage(string path);
+        Task<string> GetPackageUrl(string path);
     }
 }
