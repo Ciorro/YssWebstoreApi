@@ -8,7 +8,6 @@ using YssWebstoreApi.Api.DTO.Resources;
 using YssWebstoreApi.Api.DTO.Search;
 using YssWebstoreApi.Entities.Tags;
 using YssWebstoreApi.Extensions;
-using YssWebstoreApi.Features.Posts.Commands;
 using YssWebstoreApi.Features.Projects.Commands;
 using YssWebstoreApi.Features.Projects.Queries;
 using YssWebstoreApi.Features.Search.Queries;

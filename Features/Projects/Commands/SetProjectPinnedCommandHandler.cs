@@ -4,7 +4,7 @@ using YssWebstoreApi.Features.Auth;
 using YssWebstoreApi.Persistance.Repositories.Interfaces;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Posts.Commands
+namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class SetProjectPinnedCommandHandler
         : ICommandHandler<SetProjectPinnedCommand, Result>

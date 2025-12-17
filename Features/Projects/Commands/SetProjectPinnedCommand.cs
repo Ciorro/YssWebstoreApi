@@ -1,7 +1,7 @@
 ﻿using LiteBus.Commands.Abstractions;
 using YssWebstoreApi.Utils;
 
-namespace YssWebstoreApi.Features.Posts.Commands
+namespace YssWebstoreApi.Features.Projects.Commands
 {
     public class SetProjectPinnedCommand : ICommand<Result>
     {
