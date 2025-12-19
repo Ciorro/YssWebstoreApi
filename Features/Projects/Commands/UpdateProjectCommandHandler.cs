@@ -34,7 +34,9 @@ namespace YssWebstoreApi.Features.Projects.Commands
             project.UpdatedAt = _timeProvider.GetUtcNow().UtcDateTime;
             project.Name = message.Name;
             project.Description = message.Description;
+
             project.Tags = message.Tags;
+            project.RegenerateOSTags();
 
             await _projectRepository.UpdateAsync(project);
             return Result.Ok();
